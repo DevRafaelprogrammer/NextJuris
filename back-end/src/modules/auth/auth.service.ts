@@ -4,7 +4,12 @@ import type { StringValue } from "ms";
 import crypto from "crypto";
 import { getSupabase } from "../../config/supabase";
 import { env } from "../../config/env";
-import { UnauthorizedError, BadRequestError, ConflictError, TooManyRequestsError } from "../../utils/errors";
+import {
+  UnauthorizedError, InvalidCredentialsError, TokenExpiredError, TokenInvalidError,
+  BadRequestError, ConflictError, DuplicateError,
+  AccountLockedError, AccountSuspendedError, AccountInactiveError, AccountPendingError,
+  TooManyRequestsError,
+} from "../../utils/errors";
 import { logger } from "../../utils/logger";
 import { RegisterInput, LoginInput, ForgotPasswordInput, ResetPasswordInput, ChangePasswordInput } from "./auth.schema";
 
@@ -71,16 +76,16 @@ export class AuthService {
     const db = getSupabase();
 
     const { data: emailExists } = await db.from("users").select("id").eq("email", input.email).is("deleted_at", null).maybeSingle();
-    if (emailExists) throw new ConflictError("E-mail ja cadastrado.");
+    if (emailExists) throw new DuplicateError("E-mail", input.email);
 
     if (input.cpf) {
       const { data: cpfExists } = await db.from("users").select("id").eq("cpf", input.cpf).is("deleted_at", null).maybeSingle();
-      if (cpfExists) throw new ConflictError("CPF ja cadastrado.");
+      if (cpfExists) throw new DuplicateError("CPF");
     }
 
     if (input.oabNumber && input.oabState) {
       const { data: oabExists } = await db.from("users").select("id").eq("oab_number", input.oabNumber).eq("oab_state", input.oabState).is("deleted_at", null).maybeSingle();
-      if (oabExists) throw new ConflictError("OAB ja cadastrada.");
+      if (oabExists) throw new DuplicateError("OAB", `${input.oabState} ${input.oabNumber}`);
     }
 
     const passwordHash = await argon2.hash(input.password, {
@@ -125,29 +130,35 @@ export class AuthService {
     const { data: user } = await db.from("users").select("*").eq("email", input.email).is("deleted_at", null).maybeSingle();
 
     if (!user) {
-      throw new UnauthorizedError("E-mail ou senha incorretos.");
+      throw new InvalidCredentialsError();
     }
 
     if (user.locked_until && new Date(user.locked_until) > new Date()) {
       const minutesLeft = Math.ceil((new Date(user.locked_until).getTime() - Date.now()) / 60000);
       await recordLogin(user.id, false, ip, userAgent, "Conta bloqueada");
-      throw new TooManyRequestsError(`Conta bloqueada. Tente novamente em ${minutesLeft} minutos.`);
+      throw new AccountLockedError(minutesLeft);
     }
 
     if (user.status === "suspenso") {
       await recordLogin(user.id, false, ip, userAgent, "Conta suspensa");
-      throw new UnauthorizedError("Conta suspensa. Entre em contato com o administrador.");
+      throw new AccountSuspendedError();
     }
 
     if (user.status === "inativo") {
       await recordLogin(user.id, false, ip, userAgent, "Conta inativa");
-      throw new UnauthorizedError("Conta inativa.");
+      throw new AccountInactiveError();
     }
 
-    const { data: creds } = await db.from("user_credentials").select("password_hash").eq("user_id", user.id).single();
+    if (user.status === "pendente") {
+      await recordLogin(user.id, false, ip, userAgent, "Conta pendente");
+      throw new AccountPendingError();
+    }
+
+    const { data: creds } = await db.from("user_credentials").select("password_hash").eq("user_id", user.id).maybeSingle();
 
     if (!creds) {
-      throw new UnauthorizedError("E-mail ou senha incorretos.");
+      logger.warn("User without credentials", { userId: user.id, email: user.email });
+      throw new InvalidCredentialsError({ resource: "credentials" });
     }
 
     const valid = await argon2.verify(creds.password_hash, input.password);
@@ -166,10 +177,11 @@ export class AuthService {
       await recordLogin(user.id, false, ip, userAgent, `Senha incorreta (${newFailCount}/${MAX_FAILED_ATTEMPTS})`);
 
       if (lockUntil) {
-        throw new TooManyRequestsError(`Conta bloqueada por ${LOCKOUT_MINUTES} minutos apos ${MAX_FAILED_ATTEMPTS} tentativas.`);
+        throw new AccountLockedError(LOCKOUT_MINUTES);
       }
 
-      throw new UnauthorizedError("E-mail ou senha incorretos.");
+      const remaining = MAX_FAILED_ATTEMPTS - newFailCount;
+      throw new InvalidCredentialsError({ constraint: `${remaining} tentativa${remaining !== 1 ? "s" : ""} restante${remaining !== 1 ? "s" : ""}` });
     }
 
     await db.from("users").update({
@@ -197,8 +209,9 @@ export class AuthService {
     try {
       payload = jwt.verify(refreshToken, env.JWT_SECRET) as JwtPayload;
       if (payload.type !== "refresh") throw new Error("Not a refresh token");
-    } catch {
-      throw new UnauthorizedError("Refresh token invalido ou expirado.");
+    } catch (err: any) {
+      if (err.name === "TokenExpiredError") throw new TokenExpiredError();
+      throw new TokenInvalidError();
     }
 
     const { data: session } = await db.from("user_sessions")
@@ -209,13 +222,13 @@ export class AuthService {
       .maybeSingle();
 
     if (!session) {
-      throw new UnauthorizedError("Sessao expirada ou revogada.");
+      throw new TokenExpiredError();
     }
 
     const { data: user } = await db.from("users").select("*").eq("id", payload.sub).is("deleted_at", null).maybeSingle();
-    if (!user || user.status === "suspenso" || user.status === "inativo") {
-      throw new UnauthorizedError("Conta indisponivel.");
-    }
+    if (!user) throw new TokenInvalidError();
+    if (user.status === "suspenso") throw new AccountSuspendedError();
+    if (user.status === "inativo") throw new AccountInactiveError();
 
     await db.from("user_sessions").update({ revoked_at: new Date().toISOString() }).eq("id", session.id);
 
