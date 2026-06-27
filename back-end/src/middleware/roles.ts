@@ -3,7 +3,7 @@ import { ForbiddenError, InsufficientPermissionError } from "../utils/errors";
 
 export type Role = "admin" | "advogado" | "socio" | "associado" | "estagiario" | "secretaria" | "paralegal" | "cliente";
 
-const ROLE_HIERARCHY: Record<Role, number> = {
+export const ROLE_HIERARCHY: Record<Role, number> = {
   admin: 100,
   socio: 80,
   advogado: 60,
@@ -14,7 +14,7 @@ const ROLE_HIERARCHY: Record<Role, number> = {
   cliente: 10,
 };
 
-const ROLE_PERMISSIONS: Record<Role, Set<string>> = {
+export const ROLE_PERMISSIONS: Record<Role, Set<string>> = {
   admin: new Set([
     "users:read", "users:write", "users:delete", "users:manage-roles",
     "reports:read", "reports:write", "reports:delete", "reports:generate", "reports:approve",

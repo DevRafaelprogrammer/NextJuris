@@ -10,7 +10,7 @@ import { env } from "./config/env";
 import { COOKIE_SECRET, COOKIE_NAMES } from "./config/cookies";
 import { errorHandler, notFoundHandler, getErrorMetrics } from "./middleware/error-handler";
 import { requestId } from "./middleware/request-id";
-import { apiGuard, pageGuard, redirectIfAuthenticated } from "./middleware/route-guard";
+import { apiGuard, pageGuard, redirectIfAuthenticated, requestSanitizer, csrfProtection, sensitiveRouteThrottle } from "./middleware/route-guard";
 import { authenticate } from "./middleware/auth";
 import { requireRole, requirePermission, getPermissions } from "./middleware/roles";
 import { healthRoutes } from "./modules/health/health.routes";
@@ -68,6 +68,8 @@ export function createApp(): express.Application {
     app.use(morgan("short"));
   }
 
+  app.use(requestSanitizer);
+  app.use(csrfProtection);
   app.use(apiGuard);
 
   app.use(
