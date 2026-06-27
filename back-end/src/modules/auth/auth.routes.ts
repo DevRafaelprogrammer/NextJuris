@@ -4,8 +4,14 @@ import { validate } from "../../middleware/validate";
 import { authenticate } from "../../middleware/auth";
 import { asyncHandler } from "../../utils/async-handler";
 import { sendSuccess, sendCreated, sendNoContent } from "../../utils/response";
+import { BadRequestError } from "../../utils/errors";
+import { getSupabase } from "../../config/supabase";
 import {
   registerSchema,
+  registerStep1Schema,
+  registerStep2Schema,
+  registerStep3Schema,
+  validateFieldSchema,
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
@@ -26,9 +32,132 @@ function getUserAgent(req: Request): string | null {
   return (req.headers["user-agent"] as string) || null;
 }
 
+router.post("/register/validate/step1", validate({ body: registerStep1Schema }), asyncHandler(async (req: Request, res: Response) => {
+  const db = getSupabase();
+  const conflicts: Record<string, string> = {};
+
+  const { data: emailDup } = await db.from("users").select("id").eq("email", req.body.email).is("deleted_at", null).maybeSingle();
+  if (emailDup) conflicts.email = "E-mail ja cadastrado.";
+
+  if (req.body.cpf) {
+    const { data: cpfDup } = await db.from("users").select("id").eq("cpf", req.body.cpf).is("deleted_at", null).maybeSingle();
+    if (cpfDup) conflicts.cpf = "CPF ja cadastrado.";
+  }
+
+  if (req.body.phone) {
+    const normalized = req.body.phone.replace(/\D/g, "");
+    const { data: phoneDup } = await db.from("users").select("id").eq("phone", req.body.phone).is("deleted_at", null).maybeSingle();
+    if (phoneDup) conflicts.phone = "Telefone ja cadastrado.";
+  }
+
+  sendSuccess(res, {
+    valid: Object.keys(conflicts).length === 0,
+    conflicts,
+    data: { fullName: req.body.fullName, email: req.body.email, cpf: req.body.cpf, phone: req.body.phone },
+  });
+}));
+
+router.post("/register/validate/step2", validate({ body: registerStep2Schema }), asyncHandler(async (req: Request, res: Response) => {
+  const db = getSupabase();
+  const conflicts: Record<string, string> = {};
+
+  if (req.body.oabNumber && req.body.oabState) {
+    const { data: oabDup } = await db.from("users").select("id")
+      .eq("oab_number", req.body.oabNumber)
+      .eq("oab_state", req.body.oabState)
+      .is("deleted_at", null).maybeSingle();
+    if (oabDup) conflicts.oabNumber = `OAB/${req.body.oabState} ${req.body.oabNumber} ja cadastrada.`;
+  }
+
+  if (req.body.officeCnpj) {
+    const { data: cnpjDup } = await db.from("users").select("id").eq("office_cnpj", req.body.officeCnpj).is("deleted_at", null).maybeSingle();
+    if (cnpjDup) conflicts.officeCnpj = "CNPJ ja cadastrado.";
+  }
+
+  sendSuccess(res, {
+    valid: Object.keys(conflicts).length === 0,
+    conflicts,
+    data: req.body,
+  });
+}));
+
+router.post("/register/validate/step3", validate({ body: registerStep3Schema }), asyncHandler(async (_req: Request, res: Response) => {
+  sendSuccess(res, { valid: true });
+}));
+
+router.post("/register/validate/field", validate({ body: validateFieldSchema }), asyncHandler(async (req: Request, res: Response) => {
+  const { field, value, oabState } = req.body;
+  const db = getSupabase();
+  let available = true;
+  let message = "";
+
+  switch (field) {
+    case "email": {
+      const { data } = await db.from("users").select("id").eq("email", value.toLowerCase()).is("deleted_at", null).maybeSingle();
+      available = !data;
+      message = data ? "E-mail ja cadastrado." : "E-mail disponivel.";
+      break;
+    }
+    case "cpf": {
+      const normalized = value.replace(/\D/g, "");
+      const formatted = normalized.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+      const { data } = await db.from("users").select("id").eq("cpf", formatted).is("deleted_at", null).maybeSingle();
+      available = !data;
+      message = data ? "CPF ja cadastrado." : "CPF disponivel.";
+      break;
+    }
+    case "oabNumber": {
+      if (!oabState) { available = true; message = "Informe a seccional."; break; }
+      const { data } = await db.from("users").select("id")
+        .eq("oab_number", value)
+        .eq("oab_state", oabState.toUpperCase())
+        .is("deleted_at", null).maybeSingle();
+      available = !data;
+      message = data ? `OAB/${oabState.toUpperCase()} ${value} ja cadastrada.` : "OAB disponivel.";
+      break;
+    }
+    case "phone": {
+      const { data } = await db.from("users").select("id").eq("phone", value).is("deleted_at", null).maybeSingle();
+      available = !data;
+      message = data ? "Telefone ja cadastrado." : "Telefone disponivel.";
+      break;
+    }
+  }
+
+  sendSuccess(res, { field, available, message });
+}));
+
 router.post("/register", validate({ body: registerSchema }), asyncHandler(async (req: Request, res: Response) => {
   const result = await service.register(req.body);
   sendCreated(res, result);
+}));
+
+router.get("/register/areas", asyncHandler(async (_req: Request, res: Response) => {
+  sendSuccess(res, {
+    areas: [
+      { value: "Direito civil", label: "Direito civil", icon: "ti-scale" },
+      { value: "Direito penal", label: "Direito penal", icon: "ti-gavel" },
+      { value: "Direito trabalhista", label: "Direito trabalhista", icon: "ti-briefcase" },
+      { value: "Direito tributario", label: "Direito tributario", icon: "ti-receipt-tax" },
+      { value: "Direito empresarial", label: "Direito empresarial", icon: "ti-building" },
+      { value: "Direito constitucional", label: "Direito constitucional", icon: "ti-book" },
+      { value: "Direito administrativo", label: "Direito administrativo", icon: "ti-building-community" },
+      { value: "Direito ambiental", label: "Direito ambiental", icon: "ti-leaf" },
+      { value: "Direito do consumidor", label: "Direito do consumidor", icon: "ti-shopping-cart" },
+      { value: "Direito imobiliario", label: "Direito imobiliario", icon: "ti-home" },
+      { value: "Direito digital", label: "Direito digital", icon: "ti-device-laptop" },
+      { value: "Direito previdenciario", label: "Direito previdenciario", icon: "ti-heart" },
+      { value: "Direito de familia", label: "Direito de familia", icon: "ti-users" },
+      { value: "Direito internacional", label: "Direito internacional", icon: "ti-world" },
+    ],
+    states: ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"],
+    comarcas: [
+      "Sao Paulo - SP", "Rio de Janeiro - RJ", "Brasilia - DF", "Belo Horizonte - MG",
+      "Curitiba - PR", "Porto Alegre - RS", "Salvador - BA", "Recife - PE",
+      "Fortaleza - CE", "Goiania - GO", "Manaus - AM", "Belem - PA",
+      "Florianopolis - SC", "Vitoria - ES", "Campinas - SP",
+    ],
+  });
 }));
 
 router.post("/login", validate({ body: loginSchema }), asyncHandler(async (req: Request, res: Response) => {
@@ -68,7 +197,7 @@ router.post("/change-password", authenticate, validate({ body: changePasswordSch
 }));
 
 router.get("/me", authenticate, asyncHandler(async (req: Request, res: Response) => {
-  const db = (await import("../../config/supabase")).getSupabase();
+  const db = getSupabase();
   const { data: user } = await db.from("users").select("*").eq("id", req.user!.sub).is("deleted_at", null).maybeSingle();
   if (!user) { sendSuccess(res, null); return; }
   const { two_factor_secret, ...safe } = user;

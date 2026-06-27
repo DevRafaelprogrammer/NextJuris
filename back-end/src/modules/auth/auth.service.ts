@@ -105,7 +105,10 @@ export class AuthService {
       role: "advogado",
       status: "pendente",
       office_name: input.officeName ?? null,
+      office_cnpj: (input as any).officeCnpj ?? null,
       area: input.area ?? null,
+      comarca: (input as any).comarca ?? null,
+      specialties: (input as any).specialties ?? [],
     }).select().single();
 
     if (userError || !user) throw new Error(userError?.message || "Erro ao criar usuario");
