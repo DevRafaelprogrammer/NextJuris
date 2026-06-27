@@ -1,6 +1,7 @@
 import { createApp } from "./app";
 import { env } from "./config/env";
 import { logger } from "./utils/logger";
+import { disconnectPrisma } from "./config/prisma";
 
 const app = createApp();
 
@@ -13,7 +14,8 @@ const server = app.listen(env.PORT, () => {
 
 function gracefulShutdown(signal: string): void {
   logger.info(`${signal} received, shutting down gracefully`);
-  server.close(() => {
+  server.close(async () => {
+    await disconnectPrisma();
     logger.info("Server closed");
     process.exit(0);
   });

@@ -1,0 +1,301 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── ENUMS ───────────────────────────────────────────
+
+enum UserRole {
+  admin
+  advogado
+  estagiario
+  secretaria
+  cliente
+
+  @@map("user_role")
+}
+
+enum ClientType {
+  pessoa_fisica
+  pessoa_juridica
+
+  @@map("client_type")
+}
+
+enum CasePhase {
+  conhecimento
+  instrucao
+  recurso
+  execucao
+  conciliacao
+  arquivado
+
+  @@map("case_phase")
+}
+
+enum ReportType {
+  parecer
+  peca
+  relatorio
+  analise
+  contrato
+
+  @@map("report_type")
+}
+
+enum ReportStatus {
+  rascunho
+  gerando
+  revisao
+  finalizado
+  aprovado
+  arquivado
+
+  @@map("report_status")
+}
+
+enum PriorityLevel {
+  baixa
+  media
+  alta
+  urgente
+
+  @@map("priority_level")
+}
+
+enum EventType {
+  audiencia
+  prazo
+  reuniao
+  despacho
+  pericia
+  outro
+
+  @@map("event_type")
+}
+
+enum DocCategory {
+  contrato
+  peca
+  parecer
+  modelo
+  procuracao
+  laudo
+  outro
+
+  @@map("doc_category")
+}
+
+enum FinancialType {
+  honorario
+  custas
+  despesa
+  recebimento
+
+  @@map("financial_type")
+}
+
+enum FinancialStatus {
+  pendente
+  pago
+  vencido
+  cancelado
+
+  @@map("financial_status")
+}
+
+// ─── MODELS ──────────────────────────────────────────
+
+model Client {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  type       ClientType
+  document   String     @unique
+  email      String?
+  phone      String?
+  address    String?
+  city       String?
+  state      String?    @db.Char(2)
+  zipCode    String?    @map("zip_code")
+  area       String?
+  notes      String?
+  isActive   Boolean    @default(true) @map("is_active")
+  createdBy  String?    @map("created_by") @db.Uuid
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt  DateTime?  @map("deleted_at") @db.Timestamptz
+
+  cases      Case[]
+  reports    Report[]
+  documents  Document[]
+  events     CalendarEvent[]
+  financials Financial[]
+
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_clients_name_trgm")
+  @@index([document], map: "idx_clients_document")
+  @@index([type], map: "idx_clients_type")
+  @@index([createdBy], map: "idx_clients_created_by")
+  @@map("clients")
+}
+
+model Case {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caseNumber     String    @unique @map("case_number")
+  parties        String
+  court          String
+  judge          String?
+  area           String
+  phase          CasePhase @default(conhecimento)
+  clientId       String?   @map("client_id") @db.Uuid
+  estimatedValue Decimal   @default(0) @map("estimated_value") @db.Decimal(15, 2)
+  description    String?
+  nextDeadline   DateTime? @map("next_deadline") @db.Timestamptz
+  isActive       Boolean   @default(true) @map("is_active")
+  createdBy      String?   @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz
+
+  client     Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  reports    Report[]
+  documents  Document[]
+  events     CalendarEvent[]
+  financials Financial[]
+
+  @@index([caseNumber], map: "idx_cases_number")
+  @@index([clientId], map: "idx_cases_client")
+  @@index([phase], map: "idx_cases_phase")
+  @@index([area], map: "idx_cases_area")
+  @@index([parties(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_cases_parties_trgm")
+  @@map("cases")
+}
+
+model Report {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title            String
+  type             ReportType
+  status           ReportStatus @default(rascunho)
+  clientId         String?      @map("client_id") @db.Uuid
+  caseId           String?      @map("case_id") @db.Uuid
+  area             String?
+  description      String?
+  content          String       @default("")
+  tags             String[]     @default([])
+  priority         PriorityLevel @default(media)
+  wordCount        Int          @default(0) @map("word_count")
+  generatedBy      String       @default("manual") @map("generated_by")
+  generationParams Json?        @map("generation_params")
+  generationTimeMs Int?         @map("generation_time_ms")
+  createdBy        String?      @map("created_by") @db.Uuid
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt        DateTime?    @map("deleted_at") @db.Timestamptz
+
+  client    Client?    @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  case      Case?      @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  documents Document[]
+
+  @@index([type], map: "idx_reports_type")
+  @@index([status], map: "idx_reports_status")
+  @@index([clientId], map: "idx_reports_client")
+  @@index([caseId], map: "idx_reports_case")
+  @@index([priority], map: "idx_reports_priority")
+  @@index([tags], type: Gin, map: "idx_reports_tags")
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_reports_title_trgm")
+  @@index([createdAt(sort: Desc)], map: "idx_reports_created_at")
+  @@map("reports")
+}
+
+model Document {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  category    DocCategory @default(outro)
+  mimeType    String      @default("application/pdf") @map("mime_type")
+  sizeBytes   BigInt      @default(0) @map("size_bytes")
+  storagePath String?     @map("storage_path")
+  caseId      String?     @map("case_id") @db.Uuid
+  clientId    String?     @map("client_id") @db.Uuid
+  reportId    String?     @map("report_id") @db.Uuid
+  tags        String[]    @default([])
+  description String?
+  version     Int         @default(1)
+  checksum    String?
+  createdBy   String?     @map("created_by") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt   DateTime?   @map("deleted_at") @db.Timestamptz
+
+  case   Case?   @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  client Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  report Report? @relation(fields: [reportId], references: [id], onDelete: SetNull)
+
+  @@index([category], map: "idx_documents_category")
+  @@index([caseId], map: "idx_documents_case")
+  @@index([clientId], map: "idx_documents_client")
+  @@index([reportId], map: "idx_documents_report")
+  @@index([tags], type: Gin, map: "idx_documents_tags")
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_documents_name_trgm")
+  @@map("documents")
+}
+
+model CalendarEvent {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String
+  type            EventType
+  startsAt        DateTime      @map("starts_at") @db.Timestamptz
+  endsAt          DateTime?     @map("ends_at") @db.Timestamptz
+  allDay          Boolean       @default(false) @map("all_day")
+  location        String?
+  caseId          String?       @map("case_id") @db.Uuid
+  clientId        String?       @map("client_id") @db.Uuid
+  description     String?
+  priority        PriorityLevel @default(media)
+  isCompleted     Boolean       @default(false) @map("is_completed")
+  completedAt     DateTime?     @map("completed_at") @db.Timestamptz
+  reminderMinutes Int           @default(60) @map("reminder_minutes")
+  recurrenceRule  String?       @map("recurrence_rule")
+  createdBy       String?       @map("created_by") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt       DateTime?     @map("deleted_at") @db.Timestamptz
+
+  case   Case?   @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  client Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([startsAt], map: "idx_calendar_starts")
+  @@index([type], map: "idx_calendar_type")
+  @@index([caseId], map: "idx_calendar_case")
+  @@index([clientId], map: "idx_calendar_client")
+  @@map("calendar_events")
+}
+
+model Financial {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description String
+  type        FinancialType
+  status      FinancialStatus @default(pendente)
+  amount      Decimal         @db.Decimal(15, 2)
+  dueDate     DateTime?       @map("due_date") @db.Date
+  paidAt      DateTime?       @map("paid_at") @db.Timestamptz
+  caseId      String?         @map("case_id") @db.Uuid
+  clientId    String?         @map("client_id") @db.Uuid
+  notes       String?
+  createdBy   String?         @map("created_by") @db.Uuid
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt   DateTime?       @map("deleted_at") @db.Timestamptz
+
+  case   Case?   @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  client Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([type], map: "idx_financials_type")
+  @@index([status], map: "idx_financials_status")
+  @@index([clientId], map: "idx_financials_client")
+  @@index([caseId], map: "idx_financials_case")
+  @@index([dueDate], map: "idx_financials_due_date")
+  @@map("financials")
+}

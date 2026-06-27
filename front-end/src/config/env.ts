@@ -15,6 +15,7 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url(),
   SUPABASE_ANON_KEY: z.string().min(20),
   SUPABASE_SERVICE_KEY: z.string().min(20),
+  DATABASE_URL: z.string().url().optional().default("postgresql://localhost:5432/nextjuris"),
 });
 
 const parsed = envSchema.safeParse(process.env);
