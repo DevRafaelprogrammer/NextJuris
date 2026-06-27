@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" fill="none">
+  <g transform="translate(100, 2)">
+    <line x1="20" y1="8" x2="20" y2="22" stroke="#C9AA71" stroke-width="1.5"/>
+    <line x1="6" y1="10" x2="34" y2="10" stroke="#C9AA71" stroke-width="1.5"/>
+    <circle cx="20" cy="6" r="3" stroke="#C9AA71" stroke-width="1.2" fill="none"/>
+    <path d="M6 10 L2 22 Q8 26 14 22 Z" fill="#C9AA71" opacity="0.9"/>
+    <path d="M34 10 L26 22 Q32 26 38 22 Z" fill="#C9AA71" opacity="0.9"/>
+    <line x1="6" y1="10" x2="6" y2="10" stroke="#C9AA71" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="34" y1="10" x2="34" y2="10" stroke="#C9AA71" stroke-width="1.5" stroke-linecap="round"/>
+    <rect x="16" y="22" width="8" height="2" rx="1" fill="#C9AA71" opacity="0.7"/>
+  </g>
+  <text x="120" y="52" text-anchor="middle" font-family="'Playfair Display', 'Georgia', serif" font-size="30" font-weight="500" fill="#F0E8D8" letter-spacing="1">NextJuris</text>
+  <text x="120" y="68" text-anchor="middle" font-family="'Inter', 'Helvetica', sans-serif" font-size="9" fill="#C9AA71" letter-spacing="3" font-weight="400">RELATORIOS JURIDICOS INTELIGENTES</text>
+</svg>

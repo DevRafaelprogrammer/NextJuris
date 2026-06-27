@@ -140,8 +140,8 @@ export function LoginPage() {
     <div style={{ minHeight: "100vh", display: "flex" }}>
       <div style={{ width: 380, background: "#0F1923", padding: "40px 32px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
         <div>
-          <div style={{ width: 48, height: 48, border: "1.5px solid #C9AA71", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#C9AA71", fontSize: 22, marginBottom: 24 }}>⚖</div>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 600, color: "#F0E8D8", marginBottom: 6 }}>NextJuris</div>
+          <img src="/logo-icon.svg" alt="NextJuris" style={{ width: 52, height: 52, marginBottom: 20 }} />
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 600, color: "#F0E8D8", marginBottom: 4 }}>NextJuris</div>
           <div style={{ fontSize: 11, letterSpacing: "0.1em", color: "#C9AA71", fontVariant: "small-caps", marginBottom: 24 }}>Inteligencia artificial aplicada ao direito</div>
           <p style={{ fontSize: 13, color: "#8FA3B1", lineHeight: 1.7 }}>Plataforma de geracao automatica de relatorios juridicos com precisao tecnica e linguagem forense.</p>
         </div>

@@ -55,12 +55,8 @@ export function Sidebar() {
 
   return (
     <aside style={{ width: 260, background: "#0F1923", display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0, borderRight: "0.5px solid #2A3A47" }}>
-      <div style={{ padding: "20px 18px", display: "flex", alignItems: "center", gap: 12, borderBottom: "0.5px solid #2A3A47" }}>
-        <div style={{ width: 36, height: 36, border: "1.5px solid #C9AA71", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#C9AA71", fontSize: 16 }}>⚖</div>
-        <div>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 600, color: "#F0E8D8" }}>NextJuris</div>
-          <div style={{ fontSize: 9, letterSpacing: "0.1em", color: "#C9AA71", fontVariant: "small-caps" }}>Relatorios juridicos</div>
-        </div>
+      <div style={{ padding: "16px 18px", display: "flex", alignItems: "center", gap: 0, borderBottom: "0.5px solid #2A3A47" }}>
+        <img src="/logo-horizontal.svg" alt="NextJuris" style={{ height: 36 }} />
       </div>
 
       <nav style={{ flex: 1, padding: "12px 8px", overflowY: "auto" }}>
