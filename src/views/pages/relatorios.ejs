@@ -1,0 +1,139 @@
+<section class="nj-page" id="page-relatorios">
+  <div class="nj-toolbar">
+    <button class="nj-btn nj-btn-primary nj-btn-md" data-nav="novo-relatorio"><i class="ti ti-plus" aria-hidden="true"></i><span class="nj-btn-label">Novo relatorio</span></button>
+    <div class="nj-btn-group" data-toggle="true">
+      <button class="nj-btn nj-btn-secondary nj-btn-sm active"><i class="ti ti-list" aria-hidden="true"></i><span class="nj-btn-label">Lista</span></button>
+      <button class="nj-btn nj-btn-secondary nj-btn-sm"><i class="ti ti-layout-grid" aria-hidden="true"></i><span class="nj-btn-label">Grid</span></button>
+    </div>
+    <div class="nj-toolbar-divider"></div>
+    <div class="nj-toggle-group">
+      <button class="nj-toggle-btn active">Todos</button>
+      <button class="nj-toggle-btn">Parecer</button>
+      <button class="nj-toggle-btn">Peca</button>
+      <button class="nj-toggle-btn">Analise</button>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:4px">
+      <button class="nj-btn nj-btn-ghost nj-btn-sm" data-nav="modelos"><i class="ti ti-template" aria-hidden="true"></i><span class="nj-btn-label">Modelos</span></button>
+      <button class="nj-btn nj-btn-ghost nj-btn-sm" data-nav="historico"><i class="ti ti-history" aria-hidden="true"></i><span class="nj-btn-label">Historico</span></button>
+      <button class="nj-btn nj-btn-ghost nj-btn-sm nj-btn-icon-only" aria-label="Exportar"><i class="ti ti-download"></i></button>
+    </div>
+  </div>
+  <div class="nj-panel">
+    <div class="nj-panel-header">
+      <div class="nj-panel-title"><i class="ti ti-file-text" aria-hidden="true"></i> Relatorios recentes</div>
+      <div class="nj-chip-group">
+        <span class="nj-chip active"><i class="ti ti-filter" aria-hidden="true"></i> Filtros ativos <button class="nj-chip-close" aria-label="Remover"><i class="ti ti-x"></i></button></span>
+      </div>
+    </div>
+    <div class="nj-panel-body-flush">
+    <table style="width:100%;font-size:13px;border-collapse:collapse">
+      <thead>
+        <tr style="border-bottom:0.5px solid var(--nj-border);text-align:left">
+          <th style="padding:10px 8px;font-weight:500;color:var(--nj-text-muted);font-size:11px;font-variant:small-caps;letter-spacing:0.06em">Titulo</th>
+          <th style="padding:10px 8px;font-weight:500;color:var(--nj-text-muted);font-size:11px;font-variant:small-caps;letter-spacing:0.06em">Tipo</th>
+          <th style="padding:10px 8px;font-weight:500;color:var(--nj-text-muted);font-size:11px;font-variant:small-caps;letter-spacing:0.06em">Cliente</th>
+          <th style="padding:10px 8px;font-weight:500;color:var(--nj-text-muted);font-size:11px;font-variant:small-caps;letter-spacing:0.06em">Data</th>
+          <th style="padding:10px 8px;font-weight:500;color:var(--nj-text-muted);font-size:11px;font-variant:small-caps;letter-spacing:0.06em;text-align:right">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:0.5px solid var(--nj-border)">
+          <td style="padding:10px 8px">Parecer sobre danos morais</td>
+          <td style="padding:10px 8px;color:var(--nj-text-secondary)">Parecer</td>
+          <td style="padding:10px 8px"><a class="nj-inline-link" data-nav="clientes">Silva Ltda.</a></td>
+          <td style="padding:10px 8px;color:var(--nj-text-muted)">27/06/2026</td>
+          <td style="padding:10px 8px;text-align:right"><span style="background:var(--nj-gold-dim);color:var(--nj-gold);font-size:11px;padding:2px 10px;border-radius:10px;font-weight:500">Finalizado</span></td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--nj-border)">
+          <td style="padding:10px 8px">Relatorio de diligencias</td>
+          <td style="padding:10px 8px;color:var(--nj-text-secondary)">Relatorio</td>
+          <td style="padding:10px 8px"><a class="nj-inline-link" data-nav="clientes">Banco Beta S.A.</a></td>
+          <td style="padding:10px 8px;color:var(--nj-text-muted)">26/06/2026</td>
+          <td style="padding:10px 8px;text-align:right"><span style="background:rgba(29,158,117,0.08);color:var(--nj-success);font-size:11px;padding:2px 10px;border-radius:10px;font-weight:500">Aprovado</span></td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--nj-border)">
+          <td style="padding:10px 8px">Contestacao trabalhista</td>
+          <td style="padding:10px 8px;color:var(--nj-text-secondary)">Peca</td>
+          <td style="padding:10px 8px"><a class="nj-inline-link" data-nav="clientes">Maria Costa</a></td>
+          <td style="padding:10px 8px;color:var(--nj-text-muted)">25/06/2026</td>
+          <td style="padding:10px 8px;text-align:right"><span style="background:rgba(192,57,43,0.08);color:var(--nj-danger);font-size:11px;padding:2px 10px;border-radius:10px;font-weight:500">Revisao</span></td>
+        </tr>
+        <tr>
+          <td style="padding:10px 8px">Analise contratual</td>
+          <td style="padding:10px 8px;color:var(--nj-text-secondary)">Analise</td>
+          <td style="padding:10px 8px"><a class="nj-inline-link" data-nav="clientes">Banco Beta S.A.</a></td>
+          <td style="padding:10px 8px;color:var(--nj-text-muted)">24/06/2026</td>
+          <td style="padding:10px 8px;text-align:right"><span class="nj-badge nj-badge-gold">Finalizado</span></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="nj-panel-footer">
+      <span class="nj-panel-footer-text">4 relatorios · Pagina 1 de 1</span>
+      <div style="display:flex;gap:4px">
+        <button class="nj-btn nj-btn-ghost nj-btn-xs nj-btn-icon-only" disabled aria-label="Anterior"><i class="ti ti-chevron-left"></i></button>
+        <button class="nj-btn nj-btn-secondary nj-btn-xs" style="min-width:28px">1</button>
+        <button class="nj-btn nj-btn-ghost nj-btn-xs nj-btn-icon-only" disabled aria-label="Proximo"><i class="ti ti-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+  <div class="nj-page-nav">
+    <a class="nj-page-nav-btn" data-nav="painel"><i class="ti ti-arrow-left" aria-hidden="true"></i><div><div class="nj-page-nav-label">Anterior</div><div class="nj-page-nav-title">Painel</div></div></a>
+    <a class="nj-page-nav-btn" data-nav="processos"><div style="text-align:right"><div class="nj-page-nav-label">Proximo</div><div class="nj-page-nav-title">Processos</div></div><i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+  </div>
+</section>
+
+<section class="nj-page" id="page-novo-relatorio">
+  <div class="nj-context-links" style="margin-bottom:16px">
+    <a class="nj-context-link" data-nav="relatorios"><i class="ti ti-arrow-left" aria-hidden="true"></i> Voltar aos relatorios</a>
+    <a class="nj-context-link" data-nav="modelos" style="margin-left:auto"><i class="ti ti-template" aria-hidden="true"></i> Ver modelos</a>
+  </div>
+  <div class="nj-card">
+    <div class="nj-card-title"><i class="ti ti-sparkles" aria-hidden="true"></i> Selecionar tipo de relatorio</div>
+    <p style="font-size:13px;color:var(--nj-text-muted);margin-bottom:16px">Escolha o modelo para gerar automaticamente com IA.</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      <div class="nj-related-card">
+        <i class="ti ti-file-text" aria-hidden="true"></i>
+        <div><div class="nj-related-card-title">Parecer juridico</div><div class="nj-related-card-sub">Opiniao tecnica fundamentada</div></div>
+      </div>
+      <div class="nj-related-card">
+        <i class="ti ti-gavel" aria-hidden="true"></i>
+        <div><div class="nj-related-card-title">Peca processual</div><div class="nj-related-card-sub">Peticoes e contestacoes</div></div>
+      </div>
+      <div class="nj-related-card">
+        <i class="ti ti-report-analytics" aria-hidden="true"></i>
+        <div><div class="nj-related-card-title">Relatorio analitico</div><div class="nj-related-card-sub">Analise de caso detalhada</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="nj-card">
+    <div class="nj-card-title"><i class="ti ti-link" aria-hidden="true"></i> Vincular a</div>
+    <div class="nj-context-links">
+      <a class="nj-context-link" data-nav="processos"><i class="ti ti-gavel" aria-hidden="true"></i> Selecionar processo</a>
+      <a class="nj-context-link" data-nav="clientes"><i class="ti ti-users" aria-hidden="true"></i> Selecionar cliente</a>
+      <a class="nj-context-link" data-nav="documentos"><i class="ti ti-folder" aria-hidden="true"></i> Anexar documentos</a>
+    </div>
+  </div>
+</section>
+
+<section class="nj-page" id="page-modelos">
+  <div class="nj-context-links" style="margin-bottom:16px">
+    <a class="nj-context-link" data-nav="relatorios"><i class="ti ti-arrow-left" aria-hidden="true"></i> Voltar aos relatorios</a>
+    <a class="nj-context-link" data-nav="novo-relatorio" style="margin-left:auto"><i class="ti ti-plus" aria-hidden="true"></i> Criar relatorio</a>
+  </div>
+  <div class="nj-card">
+    <div class="nj-card-title"><i class="ti ti-template" aria-hidden="true"></i> Modelos disponiveis</div>
+    <p style="font-size:13px;color:var(--nj-text-muted)">Templates de relatorios predefinidos e personalizaveis.</p>
+  </div>
+</section>
+
+<section class="nj-page" id="page-historico">
+  <div class="nj-context-links" style="margin-bottom:16px">
+    <a class="nj-context-link" data-nav="relatorios"><i class="ti ti-arrow-left" aria-hidden="true"></i> Voltar aos relatorios</a>
+    <a class="nj-context-link" data-nav="analises" style="margin-left:auto"><i class="ti ti-chart-bar" aria-hidden="true"></i> Ver analises</a>
+  </div>
+  <div class="nj-card">
+    <div class="nj-card-title"><i class="ti ti-history" aria-hidden="true"></i> Historico de geracoes</div>
+    <p style="font-size:13px;color:var(--nj-text-muted)">Consulte relatorios gerados anteriormente.</p>
+  </div>
+</section>

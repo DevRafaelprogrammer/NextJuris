@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NextJuris — <%= title || 'Autenticacao' %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.6.0/dist/tabler-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/navigation.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <div class="nj-auth-shell">
+    <aside class="nj-auth-brand">
+      <div class="nj-auth-brand-top">
+        <div class="nj-auth-seal"><i class="ti ti-shield-check" aria-hidden="true"></i></div>
+        <div class="nj-auth-brand-name">NextJuris</div>
+        <div class="nj-auth-brand-tagline">Inteligencia artificial aplicada ao direito</div>
+        <p class="nj-auth-brand-desc">Plataforma de geracao automatica de relatorios juridicos com precisao tecnica e linguagem forense, alimentada por IA especializada em direito brasileiro.</p>
+        <div class="nj-auth-brand-features">
+          <div class="nj-auth-feature">
+            <div class="nj-auth-feature-icon"><i class="ti ti-sparkles" aria-hidden="true"></i></div>
+            <div><div class="nj-auth-feature-title">Geracao com IA</div><div class="nj-auth-feature-desc">Pareceres, pecas e relatorios em minutos.</div></div>
+          </div>
+          <div class="nj-auth-feature">
+            <div class="nj-auth-feature-icon"><i class="ti ti-shield-check" aria-hidden="true"></i></div>
+            <div><div class="nj-auth-feature-title">Precisao tecnica</div><div class="nj-auth-feature-desc">97% de acuracia em linguagem forense.</div></div>
+          </div>
+          <div class="nj-auth-feature">
+            <div class="nj-auth-feature-icon"><i class="ti ti-lock" aria-hidden="true"></i></div>
+            <div><div class="nj-auth-feature-title">Seguranca total</div><div class="nj-auth-feature-desc">Dados protegidos com criptografia e LGPD.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nj-auth-brand-bottom">
+        <div class="nj-auth-brand-stats">
+          <div><div class="nj-auth-stat-value">12k</div><div class="nj-auth-stat-label">Relatorios</div></div>
+          <div><div class="nj-auth-stat-value">97%</div><div class="nj-auth-stat-label">Precisao</div></div>
+          <div><div class="nj-auth-stat-value">850</div><div class="nj-auth-stat-label">Escritorios</div></div>
+        </div>
+        <div class="nj-auth-brand-footer"><i class="ti ti-lock" aria-hidden="true"></i> Conexao segura · TLS 1.3 · LGPD</div>
+      </div>
+    </aside>
+
+    <main class="nj-auth-main">
+      <div class="nj-auth-form-wrap">
+
+        <div class="nj-auth-page active" id="auth-login">
+          <div class="nj-auth-form-header">
+            <div class="nj-auth-eyebrow">Acesso ao sistema</div>
+            <h1 class="nj-auth-title">Entrar na sua conta</h1>
+            <p class="nj-auth-subtitle">Acesse o painel de geracao de relatorios juridicos.</p>
+          </div>
+          <div class="nj-auth-alert" id="login-alert"><i class="ti ti-alert-circle" aria-hidden="true"></i><span></span></div>
+          <form id="login-form" novalidate>
+            <div class="nj-auth-field">
+              <label class="nj-auth-label" for="login-email">E-mail ou OAB</label>
+              <div class="nj-auth-input-wrap">
+                <i class="ti ti-mail nj-auth-input-icon" aria-hidden="true"></i>
+                <input type="email" class="nj-auth-input" id="login-email" placeholder="advogado@escritorio.com.br" autocomplete="email" spellcheck="false">
+              </div>
+              <span class="nj-auth-helper" id="login-email-help"></span>
+            </div>
+            <div class="nj-auth-field">
+              <label class="nj-auth-label" for="login-pass">
+                Senha
+                <a class="nj-auth-label-link" data-auth-nav="forgot">Esqueceu?</a>
+              </label>
+              <div class="nj-auth-input-wrap">
+                <i class="ti ti-lock nj-auth-input-icon" aria-hidden="true"></i>
+                <input type="password" class="nj-auth-input" id="login-pass" placeholder="Sua senha" autocomplete="current-password" style="padding-right:40px">
+                <button type="button" class="nj-auth-input-action" id="login-eye" aria-label="Mostrar senha"><i class="ti ti-eye"></i></button>
+              </div>
+              <span class="nj-auth-helper" id="login-pass-help"></span>
+            </div>
+            <div class="nj-auth-options">
+              <label class="nj-auth-check">
+                <input type="checkbox" checked>
+                <span class="nj-auth-check-box"><i class="ti ti-check" aria-hidden="true"></i></span>
+                Manter conectado
+              </label>
+            </div>
+            <button type="submit" class="nj-auth-submit" id="login-submit" data-label="Entrar no sistema">
+              <span class="nj-btn-spinner"></span>
+              <span class="nj-auth-submit-label">Entrar no sistema</span>
+              <i class="ti ti-arrow-right nj-auth-submit-icon" aria-hidden="true" style="font-size:16px"></i>
+            </button>
+          </form>
+          <div class="nj-auth-divider"><span>ou continue com</span></div>
+          <div class="nj-auth-social">
+            <button class="nj-auth-social-btn"><i class="ti ti-certificate" aria-hidden="true"></i> Certificado digital (OAB)</button>
+            <button class="nj-auth-social-btn"><i class="ti ti-brand-windows" aria-hidden="true"></i> Microsoft 365</button>
+          </div>
+          <div class="nj-auth-footer">Ainda nao tem acesso? <a class="nj-auth-footer-link" data-auth-nav="register">Solicitar cadastro</a></div>
+        </div>
+
+        <div class="nj-auth-page" id="auth-register">
+          <a class="nj-auth-back-link" data-auth-nav="login"><i class="ti ti-arrow-left" aria-hidden="true"></i> Voltar ao login</a>
+          <div class="nj-auth-form-header">
+            <div class="nj-auth-eyebrow">Novo cadastro</div>
+            <h1 class="nj-auth-title">Criar sua conta</h1>
+            <p class="nj-auth-subtitle">Preencha os dados para acessar a plataforma.</p>
+          </div>
+          <div class="nj-auth-steps" id="reg-strength">
+            <div class="nj-auth-step"></div>
+            <div class="nj-auth-step"></div>
+            <div class="nj-auth-step"></div>
+            <div class="nj-auth-step"></div>
+          </div>
+          <div class="nj-auth-alert" id="reg-alert"><i class="ti ti-circle-check" aria-hidden="true"></i><span></span></div>
+          <form id="register-form" novalidate>
+            <div class="nj-auth-field">
+              <label class="nj-auth-label" for="reg-name">Nome completo</label>
+              <div class="nj-auth-input-wrap">
+                <i class="ti ti-user nj-auth-input-icon" aria-hidden="true"></i>
+                <input type="text" class="nj-auth-input" id="reg-name" placeholder="Dr. Rafael Oliveira" autocomplete="name" spellcheck="false">
+              </div>
+              <span class="nj-auth-helper" id="reg-name-help"></span>
+            </div>
+            <div class="nj-auth-field">
+              <label class="nj-auth-label" for="reg-email">E-mail profissional</label>
+              <div class="nj-auth-input-wrap">
+                <i class="ti ti-mail nj-auth-input-icon" aria-hidden="true"></i>
+                <input type="email" class="nj-auth-input" id="reg-email" placeholder="advogado@escritorio.com.br" autocomplete="email" spellcheck="false">
+              </div>
+              <span class="nj-auth-helper" id="reg-email-help"></span>
+            </div>
+            <div class="nj-auth-field">
+              <label class="nj-auth-label" for="reg-pass">Criar senha</label>
+              <div class="nj-auth-input-wrap">
+                <i class="ti ti-lock nj-auth-input-icon" aria-hidden="true"></i>
+                <input type="password" class="nj-auth-input" id="reg-pass" placeholder="Minimo 8 caracteres" autocomplete="new-password" style="padding-right:40px">
+                <button type="button" class="nj-auth-input-action" id="reg-eye" aria-label="Mostrar senha"><i class="ti ti-eye"></i></button>
+              </div>
+              <span class="nj-auth-helper" id="reg-pass-help"></span>
+            </div>
+            <div style="margin-bottom:16px">
+              <label class="nj-auth-check">
+                <input type="checkbox" id="reg-terms">
+                <span class="nj-auth-check-box"><i class="ti ti-check" aria-hidden="true"></i></span>
+                Li e aceito os <a class="nj-auth-label-link" href="#">termos de uso</a> e <a class="nj-auth-label-link" href="#">politica de privacidade</a>
+              </label>
+              <span class="nj-auth-helper" id="reg-terms-help" style="margin-top:4px"></span>
+            </div>
+            <button type="submit" class="nj-auth-submit" id="reg-submit" data-label="Criar conta">
+              <span class="nj-btn-spinner"></span>
+              <span class="nj-auth-submit-label">Criar conta</span>
+              <i class="ti ti-check nj-auth-submit-icon" aria-hidden="true" style="font-size:16px"></i>
+            </button>
+          </form>
+          <div class="nj-auth-divider"><span>ou cadastre com</span></div>
+          <div class="nj-auth-social">
+            <button class="nj-auth-social-btn"><i class="ti ti-certificate" aria-hidden="true"></i> Certificado digital (OAB)</button>
+          </div>
+          <div class="nj-auth-footer">Ja possui conta? <a class="nj-auth-footer-link" data-auth-nav="login">Entrar no sistema</a></div>
+        </div>
+
+        <div class="nj-auth-page" id="auth-forgot">
+          <a class="nj-auth-back-link" data-auth-nav="login"><i class="ti ti-arrow-left" aria-hidden="true"></i> Voltar ao login</a>
+          <div class="nj-auth-form-header">
+            <div class="nj-auth-eyebrow">Recuperar acesso</div>
+            <h1 class="nj-auth-title">Redefinir sua senha</h1>
+            <p class="nj-auth-subtitle">Informe seu e-mail para receber o link de redefinicao.</p>
+          </div>
+          <div class="nj-auth-alert" id="forgot-alert"><i class="ti ti-circle-check" aria-hidden="true"></i><span></span></div>
+          <form id="forgot-form" novalidate>
+            <div class="nj-auth-field">
+              <label class="nj-auth-label" for="forgot-email">E-mail cadastrado</label>
+              <div class="nj-auth-input-wrap">
+                <i class="ti ti-mail nj-auth-input-icon" aria-hidden="true"></i>
+                <input type="email" class="nj-auth-input" id="forgot-email" placeholder="advogado@escritorio.com.br" autocomplete="email" spellcheck="false">
+              </div>
+              <span class="nj-auth-helper" id="forgot-email-help"></span>
+            </div>
+            <button type="submit" class="nj-auth-submit" id="forgot-submit" data-label="Enviar link">
+              <span class="nj-btn-spinner"></span>
+              <span class="nj-auth-submit-label">Enviar link de redefinicao</span>
+              <i class="ti ti-mail nj-auth-submit-icon" aria-hidden="true" style="font-size:16px"></i>
+            </button>
+          </form>
+          <div class="nj-auth-footer" style="margin-top:24px">Lembrou a senha? <a class="nj-auth-footer-link" data-auth-nav="login">Entrar no sistema</a></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/auth.js"></script>
+</body>
+</html>

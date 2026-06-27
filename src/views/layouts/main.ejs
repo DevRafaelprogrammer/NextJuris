@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NextJuris — <%= title || 'Painel' %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.6.0/dist/tabler-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/navigation.css">
+  <link rel="stylesheet" href="/css/links.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/buttons.css">
+</head>
+<body>
+  <div class="nj-app">
+    <div class="nj-mobile-overlay"></div>
+
+    <%- include('../partials/sidebar') %>
+    <%- include('../partials/topbar') %>
+
+    <main class="nj-content">
+      <%- include('../pages/painel') %>
+      <%- include('../pages/relatorios') %>
+      <%- include('../pages/processos') %>
+      <%- include('../pages/clientes') %>
+      <%- include('../pages/analises') %>
+      <%- include('../pages/agenda') %>
+      <%- include('../pages/financeiro') %>
+      <%- include('../pages/documentos') %>
+      <%- include('../pages/configuracoes') %>
+    </main>
+
+    <button class="nj-scroll-top" id="scroll-top" aria-label="Voltar ao topo"><i class="ti ti-arrow-up"></i></button>
+  </div>
+
+  <script src="/js/router.js"></script>
+  <script src="/js/command-palette.js"></script>
+  <script src="/js/navigation.js"></script>
+  <script src="/js/buttons.js"></script>
+  <script src="/js/layout.js"></script>
+</body>
+</html>

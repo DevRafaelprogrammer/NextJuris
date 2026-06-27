@@ -1,0 +1,68 @@
+<section class="nj-page" id="page-processos">
+  <div class="nj-toolbar">
+    <div class="nj-btn-split">
+      <button class="nj-btn nj-btn-primary nj-btn-md" data-nav="novo-relatorio"><i class="ti ti-sparkles" aria-hidden="true"></i><span class="nj-btn-label">Gerar relatorio</span></button>
+      <button class="nj-btn nj-btn-primary nj-btn-md"><i class="ti ti-chevron-down" aria-hidden="true"></i></button>
+    </div>
+    <div class="nj-toggle-group">
+      <button class="nj-toggle-btn active"><i class="ti ti-list" aria-hidden="true"></i> Ativos</button>
+      <button class="nj-toggle-btn">Arquivados</button>
+      <button class="nj-toggle-btn">Todos</button>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:4px">
+      <button class="nj-btn nj-btn-ghost nj-btn-sm" data-nav="agenda"><i class="ti ti-calendar" aria-hidden="true"></i><span class="nj-btn-label">Prazos</span></button>
+      <button class="nj-btn nj-btn-ghost nj-btn-sm nj-btn-icon-only" aria-label="Filtrar"><i class="ti ti-filter"></i></button>
+    </div>
+  </div>
+  <div class="nj-panel">
+    <div class="nj-panel-header">
+      <div class="nj-panel-title"><i class="ti ti-gavel" aria-hidden="true"></i> Processos ativos</div>
+      <span class="nj-badge nj-badge-gold"><span class="nj-badge-dot"></span> 3 processos</span>
+    </div>
+    <div class="nj-panel-body-flush">
+    <table style="width:100%;font-size:13px;border-collapse:collapse">
+      <thead>
+        <tr style="border-bottom:0.5px solid var(--nj-border);text-align:left">
+          <th style="padding:10px 8px;font-weight:500;color:var(--nj-text-muted);font-size:11px;font-variant:small-caps;letter-spacing:0.06em">Processo</th>
+          <th style="padding:10px 8px;font-weight:500;color:var(--nj-text-muted);font-size:11px;font-variant:small-caps;letter-spacing:0.06em">Partes</th>
+          <th style="padding:10px 8px;font-weight:500;color:var(--nj-text-muted);font-size:11px;font-variant:small-caps;letter-spacing:0.06em">Vara</th>
+          <th style="padding:10px 8px;font-weight:500;color:var(--nj-text-muted);font-size:11px;font-variant:small-caps;letter-spacing:0.06em;text-align:right">Fase</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:0.5px solid var(--nj-border)">
+          <td style="padding:10px 8px;font-family:monospace;font-size:12px">0001234-56.2026.8.26</td>
+          <td style="padding:10px 8px"><a class="nj-inline-link" data-nav="clientes">Oliveira</a> vs. <a class="nj-inline-link" data-nav="clientes">Silva Ltda.</a></td>
+          <td style="padding:10px 8px;color:var(--nj-text-secondary)">3a Vara Civel - SP</td>
+          <td style="padding:10px 8px;text-align:right"><span style="background:var(--nj-gold-dim);color:var(--nj-gold);font-size:11px;padding:2px 10px;border-radius:10px;font-weight:500">Instrucao</span></td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--nj-border)">
+          <td style="padding:10px 8px;font-family:monospace;font-size:12px">0007891-23.2025.8.26</td>
+          <td style="padding:10px 8px">Banco Central vs. <a class="nj-inline-link" data-nav="clientes">Oliveira</a></td>
+          <td style="padding:10px 8px;color:var(--nj-text-secondary)">12a Vara Federal - SP</td>
+          <td style="padding:10px 8px;text-align:right"><span style="background:rgba(192,57,43,0.08);color:var(--nj-danger);font-size:11px;padding:2px 10px;border-radius:10px;font-weight:500">Recurso</span></td>
+        </tr>
+        <tr>
+          <td style="padding:10px 8px;font-family:monospace;font-size:12px">0004567-89.2026.8.26</td>
+          <td style="padding:10px 8px">Souza vs. <a class="nj-inline-link" data-nav="clientes">Construtora Beta</a></td>
+          <td style="padding:10px 8px;color:var(--nj-text-secondary)">7a Vara Trabalho - SP</td>
+          <td style="padding:10px 8px;text-align:right"><span class="nj-badge nj-badge-success"><span class="nj-badge-dot"></span> Conciliacao</span></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="nj-panel-footer">
+      <span class="nj-panel-footer-text">3 processos ativos</span>
+      <button class="nj-btn nj-btn-ghost nj-btn-xs"><i class="ti ti-download" aria-hidden="true"></i><span class="nj-btn-label">Exportar</span></button>
+    </div>
+  </div>
+  <div class="nj-context-links" style="margin-top:8px">
+    <a class="nj-context-link" data-nav="documentos"><i class="ti ti-folder" aria-hidden="true"></i> Documentos do processo</a>
+    <a class="nj-context-link" data-nav="financeiro"><i class="ti ti-currency-real" aria-hidden="true"></i> Custas e honorarios</a>
+    <a class="nj-context-link" data-nav="analises"><i class="ti ti-chart-bar" aria-hidden="true"></i> Analise processual</a>
+  </div>
+  <div class="nj-page-nav">
+    <a class="nj-page-nav-btn" data-nav="relatorios"><i class="ti ti-arrow-left" aria-hidden="true"></i><div><div class="nj-page-nav-label">Anterior</div><div class="nj-page-nav-title">Relatorios</div></div></a>
+    <a class="nj-page-nav-btn" data-nav="clientes"><div style="text-align:right"><div class="nj-page-nav-label">Proximo</div><div class="nj-page-nav-title">Clientes</div></div><i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+  </div>
+</section>
