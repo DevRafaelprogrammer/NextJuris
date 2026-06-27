@@ -19,6 +19,28 @@ enum UserRole {
   @@map("user_role")
 }
 
+enum NjUserRole {
+  admin
+  advogado
+  socio
+  associado
+  estagiario
+  secretaria
+  paralegal
+  cliente
+
+  @@map("nj_user_role")
+}
+
+enum NjUserStatus {
+  ativo
+  inativo
+  suspenso
+  pendente
+
+  @@map("nj_user_status")
+}
+
 enum ClientType {
   pessoa_fisica
   pessoa_juridica
@@ -298,4 +320,50 @@ model Financial {
   @@index([caseId], map: "idx_financials_case")
   @@index([dueDate], map: "idx_financials_due_date")
   @@map("financials")
+}
+
+model User {
+  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authId            String?      @unique @map("auth_id") @db.Uuid
+  fullName          String       @map("full_name")
+  email             String       @unique
+  phone             String?
+  cpf               String?      @unique
+  avatarUrl         String?      @map("avatar_url")
+  oabNumber         String?      @map("oab_number")
+  oabState          String?      @map("oab_state") @db.Char(2)
+  role              NjUserRole   @default(advogado)
+  status            NjUserStatus @default(pendente)
+  officeName        String?      @map("office_name")
+  officeCnpj        String?      @map("office_cnpj")
+  area              String?
+  comarca           String?
+  specialties       String[]     @default([])
+  bio               String?
+  isVerified        Boolean      @default(false) @map("is_verified")
+  verifiedAt        DateTime?    @map("verified_at") @db.Timestamptz
+  lastLoginAt       DateTime?    @map("last_login_at") @db.Timestamptz
+  lastLoginIp       String?      @map("last_login_ip") @db.Inet
+  loginCount        Int          @default(0) @map("login_count")
+  failedLoginCount  Int          @default(0) @map("failed_login_count")
+  lockedUntil       DateTime?    @map("locked_until") @db.Timestamptz
+  passwordChangedAt DateTime?    @map("password_changed_at") @db.Timestamptz
+  twoFactorEnabled  Boolean      @default(false) @map("two_factor_enabled")
+  twoFactorSecret   String?      @map("two_factor_secret")
+  preferences       Json         @default("{}")
+  metadata          Json?        @default("{}")
+  invitedById       String?      @map("invited_by") @db.Uuid
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime?    @map("deleted_at") @db.Timestamptz
+
+  invitedBy  User?  @relation("UserInvites", fields: [invitedById], references: [id], onDelete: SetNull)
+  invitees   User[] @relation("UserInvites")
+
+  @@index([email], map: "idx_users_email")
+  @@index([role], map: "idx_users_role")
+  @@index([status], map: "idx_users_status")
+  @@index([fullName(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_users_name_trgm")
+  @@index([specialties], type: Gin, map: "idx_users_specialties")
+  @@map("users")
 }
