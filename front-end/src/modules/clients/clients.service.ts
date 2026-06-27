@@ -1,6 +1,6 @@
-import { InMemoryStore } from "../../utils/store";
-import { paginate, sortBy, filterBySearch, PaginatedResult } from "../../utils/pagination";
-import { NotFoundError, ConflictError } from "../../utils/errors";
+import { SupabaseRepository, PaginatedResult } from "../../utils/supabase-repository";
+import { getSupabase } from "../../config/supabase";
+import { ConflictError } from "../../utils/errors";
 import { CreateClientInput, UpdateClientInput } from "./clients.schema";
 
 export interface Client {
@@ -8,68 +8,65 @@ export interface Client {
   name: string;
   type: string;
   document: string;
-  email: string;
-  phone: string;
-  address: string;
-  area: string;
-  notes: string;
-  activeCases: number;
-  totalReports: number;
-  createdAt: Date;
-  updatedAt: Date;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  area: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-const store = new InMemoryStore<Client>();
-
-[
-  { name: "Silva Ltda.", type: "pessoa_juridica", document: "12.345.678/0001-99", email: "contato@silvaltda.com.br", phone: "(11) 3456-7890", area: "Direito civil", activeCases: 3, totalReports: 12 },
-  { name: "Maria Costa", type: "pessoa_fisica", document: "123.456.789-00", email: "maria.costa@email.com", phone: "(11) 99876-5432", area: "Direito trabalhista", activeCases: 1, totalReports: 4 },
-  { name: "Banco Beta S.A.", type: "pessoa_juridica", document: "98.765.432/0001-10", email: "juridico@bancobeta.com.br", phone: "(11) 2345-6789", area: "Direito empresarial", activeCases: 5, totalReports: 28 },
-  { name: "Carlos Souza", type: "pessoa_fisica", document: "987.654.321-00", email: "carlos.souza@email.com", phone: "(11) 98765-4321", area: "Direito civil", activeCases: 2, totalReports: 6 },
-].forEach((c) => store.create({ ...c, address: "", notes: "" } as Omit<Client, "id" | "createdAt" | "updatedAt">));
+const repo = new SupabaseRepository<Client>("clients", ["name", "document", "email", "area"], "Cliente");
 
 export class ClientsService {
-  list(query: any): PaginatedResult<Client> {
-    let items = store.findAll();
-    if (query.search) items = filterBySearch(items, query.search, ["name", "document", "email", "area"]);
-    if (query.type) items = items.filter((c) => c.type === query.type);
-    items = sortBy(items, query.sort as keyof Client, query.order);
-    return paginate(items, query);
+  async list(query: any): Promise<PaginatedResult<Client>> {
+    return repo.findAll({
+      page: query.page,
+      limit: query.limit,
+      sort: query.sort === "name" ? "name" : "created_at",
+      order: query.order,
+      search: query.search,
+      filters: query.type ? { type: query.type } : {},
+    });
   }
 
-  getById(id: string): Client {
-    const client = store.findById(id);
-    if (!client) throw new NotFoundError("Cliente");
-    return client;
+  async getById(id: string): Promise<Client> {
+    return repo.findById(id);
   }
 
-  create(input: CreateClientInput): Client {
-    const existing = store.findWhere((c) => c.document === input.document);
-    if (existing.length > 0) throw new ConflictError("Cliente com este documento ja cadastrado.");
-    return store.create({ ...input, email: input.email ?? "", phone: input.phone ?? "", address: input.address ?? "", area: input.area ?? "", notes: input.notes ?? "", activeCases: 0, totalReports: 0 } as Omit<Client, "id" | "createdAt" | "updatedAt">);
+  async create(input: CreateClientInput): Promise<Client> {
+    const db = getSupabase();
+    const { data: existing } = await db.from("clients").select("id").eq("document", input.document).is("deleted_at", null).maybeSingle();
+    if (existing) throw new ConflictError("Cliente com este documento ja cadastrado.");
+    return repo.create(input as unknown as Partial<Client>);
   }
 
-  update(id: string, input: UpdateClientInput): Client {
-    if (!store.findById(id)) throw new NotFoundError("Cliente");
+  async update(id: string, input: UpdateClientInput): Promise<Client> {
     if (input.document) {
-      const dup = store.findWhere((c) => c.document === input.document && c.id !== id);
-      if (dup.length > 0) throw new ConflictError("Documento ja cadastrado em outro cliente.");
+      const db = getSupabase();
+      const { data: dup } = await db.from("clients").select("id").eq("document", input.document).neq("id", id).is("deleted_at", null).maybeSingle();
+      if (dup) throw new ConflictError("Documento ja cadastrado em outro cliente.");
     }
-    return store.update(id, input as Partial<Client>)!;
+    return repo.update(id, input as unknown as Partial<Client>);
   }
 
-  delete(id: string): void {
-    if (!store.findById(id)) throw new NotFoundError("Cliente");
-    store.delete(id);
+  async delete(id: string): Promise<void> {
+    return repo.softDelete(id);
   }
 
-  getStats() {
-    const all = store.findAll();
+  async getStats() {
+    const db = getSupabase();
+    const { data, error } = await db.from("clients").select("type").is("deleted_at", null);
+    if (error) throw new Error(error.message);
+    const all = data || [];
     return {
       total: all.length,
       pessoaFisica: all.filter((c) => c.type === "pessoa_fisica").length,
       pessoaJuridica: all.filter((c) => c.type === "pessoa_juridica").length,
-      totalActiveCases: all.reduce((sum, c) => sum + c.activeCases, 0),
     };
   }
 }

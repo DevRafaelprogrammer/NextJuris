@@ -12,6 +12,9 @@ const envSchema = z.object({
   RATE_LIMIT_MAX: z.coerce.number().default(100),
   LOG_LEVEL: z.enum(["error", "warn", "info", "debug"]).default("info"),
   CORS_ORIGIN: z.string().default("*"),
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_ANON_KEY: z.string().min(20),
+  SUPABASE_SERVICE_KEY: z.string().min(20),
 });
 
 const parsed = envSchema.safeParse(process.env);

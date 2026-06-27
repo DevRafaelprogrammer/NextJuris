@@ -1,80 +1,99 @@
-import { InMemoryStore } from "../../utils/store";
-import { paginate, filterBySearch, PaginatedResult } from "../../utils/pagination";
-import { NotFoundError } from "../../utils/errors";
+import { SupabaseRepository, PaginatedResult } from "../../utils/supabase-repository";
+import { getSupabase } from "../../config/supabase";
 import { CreateEventInput, UpdateEventInput } from "./calendar.schema";
 
 export interface CalendarEvent {
   id: string;
   title: string;
   type: string;
-  date: Date;
-  endDate: Date | null;
-  location: string;
-  caseId: string | null;
-  clientId: string | null;
-  description: string;
+  starts_at: string;
+  ends_at: string | null;
+  all_day: boolean;
+  location: string | null;
+  case_id: string | null;
+  client_id: string | null;
+  description: string | null;
   priority: string;
-  reminder: boolean;
-  completed: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  is_completed: boolean;
+  completed_at: string | null;
+  reminder_minutes: number;
+  created_at: string;
+  updated_at: string;
 }
 
-const store = new InMemoryStore<CalendarEvent>();
-
-[
-  { title: "Audiencia de instrucao — Silva vs. Banco Central", type: "audiencia", date: new Date("2026-06-28T14:00:00"), location: "3a Vara Civel · Forum Joao Mendes", priority: "urgente", completed: false },
-  { title: "Prazo final — Recurso ordinario Proc. 0007891", type: "prazo", date: new Date("2026-06-30T23:59:00"), location: "", priority: "urgente", completed: false },
-  { title: "Reuniao com Construtora Beta", type: "reuniao", date: new Date("2026-07-04T10:00:00"), location: "Escritorio sede", priority: "media", completed: false },
-  { title: "Despacho — Proc. 0001234", type: "despacho", date: new Date("2026-07-08T09:00:00"), location: "3a Vara Civel - SP", priority: "media", completed: false },
-  { title: "Pericia contabil — Banco Beta", type: "pericia", date: new Date("2026-07-15T14:00:00"), location: "Escritorio do perito", priority: "alta", completed: false },
-].forEach((e) => store.create({ ...e, endDate: null, caseId: null, clientId: null, description: "", reminder: true } as Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">));
+const repo = new SupabaseRepository<CalendarEvent>("calendar_events", ["title", "location"], "Evento");
 
 export class CalendarService {
-  list(query: any): PaginatedResult<CalendarEvent> {
-    let items = store.findAll();
-    if (query.search) items = filterBySearch(items, query.search, ["title", "location"]);
-    if (query.type) items = items.filter((e) => e.type === query.type);
-    if (query.caseId) items = items.filter((e) => e.caseId === query.caseId);
-    if (query.from) items = items.filter((e) => e.date >= new Date(query.from));
-    if (query.to) items = items.filter((e) => e.date <= new Date(query.to));
-    items.sort((a, b) => a.date.getTime() - b.date.getTime());
-    return paginate(items, query);
+  async list(query: any): Promise<PaginatedResult<CalendarEvent>> {
+    const db = getSupabase();
+    let q = db.from("calendar_events").select("*", { count: "exact" }).is("deleted_at", null);
+    if (query.search) q = q.or(`title.ilike.%${query.search}%,location.ilike.%${query.search}%`);
+    if (query.type) q = q.eq("type", query.type);
+    if (query.caseId) q = q.eq("case_id", query.caseId);
+    if (query.from) q = q.gte("starts_at", query.from);
+    if (query.to) q = q.lte("starts_at", query.to);
+    const page = query.page || 1;
+    const limit = query.limit || 50;
+    q = q.order("starts_at", { ascending: true }).range((page - 1) * limit, page * limit - 1);
+    const { data, error, count } = await q;
+    if (error) throw new Error(error.message);
+    const total = count || 0;
+    return { data: (data || []) as CalendarEvent[], meta: { page, limit, total, totalPages: Math.ceil(total / limit), hasNext: page < Math.ceil(total / limit), hasPrev: page > 1 } };
   }
 
-  getById(id: string): CalendarEvent {
-    const ev = store.findById(id);
-    if (!ev) throw new NotFoundError("Evento");
-    return ev;
+  async getById(id: string): Promise<CalendarEvent> { return repo.findById(id); }
+
+  async create(input: CreateEventInput): Promise<CalendarEvent> {
+    return repo.create({
+      title: input.title, type: input.type,
+      starts_at: input.date.toISOString(),
+      ends_at: input.endDate?.toISOString() ?? null,
+      location: input.location ?? null,
+      case_id: input.caseId ?? null, client_id: input.clientId ?? null,
+      description: input.description ?? null,
+      priority: input.priority, reminder_minutes: input.reminder ? 60 : 0,
+    } as unknown as Partial<CalendarEvent>);
   }
 
-  create(input: CreateEventInput): CalendarEvent {
-    return store.create({ ...input, endDate: input.endDate ?? null, location: input.location ?? "", caseId: input.caseId ?? null, clientId: input.clientId ?? null, description: input.description ?? "", completed: false } as Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">);
+  async update(id: string, input: UpdateEventInput): Promise<CalendarEvent> {
+    const mapped: any = {};
+    if (input.title !== undefined) mapped.title = input.title;
+    if (input.type !== undefined) mapped.type = input.type;
+    if (input.date !== undefined) mapped.starts_at = input.date.toISOString();
+    if (input.endDate !== undefined) mapped.ends_at = input.endDate?.toISOString() ?? null;
+    if (input.location !== undefined) mapped.location = input.location;
+    if (input.caseId !== undefined) mapped.case_id = input.caseId;
+    if (input.clientId !== undefined) mapped.client_id = input.clientId;
+    if (input.description !== undefined) mapped.description = input.description;
+    if (input.priority !== undefined) mapped.priority = input.priority;
+    return repo.update(id, mapped);
   }
 
-  update(id: string, input: UpdateEventInput): CalendarEvent {
-    if (!store.findById(id)) throw new NotFoundError("Evento");
-    return store.update(id, input as Partial<CalendarEvent>)!;
+  async complete(id: string): Promise<CalendarEvent> {
+    return repo.update(id, { is_completed: true, completed_at: new Date().toISOString() } as unknown as Partial<CalendarEvent>);
   }
 
-  complete(id: string): CalendarEvent {
-    if (!store.findById(id)) throw new NotFoundError("Evento");
-    return store.update(id, { completed: true } as Partial<CalendarEvent>)!;
+  async delete(id: string): Promise<void> { return repo.softDelete(id); }
+
+  async getUpcoming(days = 30): Promise<CalendarEvent[]> {
+    const db = getSupabase();
+    const now = new Date().toISOString();
+    const limit = new Date(Date.now() + days * 86400000).toISOString();
+    const { data, error } = await db.from("calendar_events").select("*")
+      .is("deleted_at", null).eq("is_completed", false)
+      .gte("starts_at", now).lte("starts_at", limit)
+      .order("starts_at", { ascending: true }).limit(20);
+    if (error) throw new Error(error.message);
+    return (data || []) as CalendarEvent[];
   }
 
-  delete(id: string): void {
-    if (!store.findById(id)) throw new NotFoundError("Evento");
-    store.delete(id);
-  }
-
-  getUpcoming(days = 30): CalendarEvent[] {
-    const now = new Date();
-    const limit = new Date(now.getTime() + days * 86400000);
-    return store.findWhere((e) => !e.completed && e.date >= now && e.date <= limit).sort((a, b) => a.date.getTime() - b.date.getTime());
-  }
-
-  getOverdue(): CalendarEvent[] {
-    const now = new Date();
-    return store.findWhere((e) => !e.completed && e.date < now).sort((a, b) => b.date.getTime() - a.date.getTime());
+  async getOverdue(): Promise<CalendarEvent[]> {
+    const db = getSupabase();
+    const { data, error } = await db.from("calendar_events").select("*")
+      .is("deleted_at", null).eq("is_completed", false)
+      .lt("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: false }).limit(10);
+    if (error) throw new Error(error.message);
+    return (data || []) as CalendarEvent[];
   }
 }

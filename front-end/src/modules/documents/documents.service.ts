@@ -1,74 +1,66 @@
-import { InMemoryStore } from "../../utils/store";
-import { paginate, sortBy, filterBySearch, PaginatedResult } from "../../utils/pagination";
-import { NotFoundError } from "../../utils/errors";
+import { SupabaseRepository, PaginatedResult } from "../../utils/supabase-repository";
+import { getSupabase } from "../../config/supabase";
 import { CreateDocumentInput, UpdateDocumentInput } from "./documents.schema";
 
 export interface Document {
   id: string;
   name: string;
   category: string;
-  mimeType: string;
-  size: number;
-  caseId: string | null;
-  clientId: string | null;
-  reportId: string | null;
+  mime_type: string;
+  size_bytes: number;
+  storage_path: string | null;
+  case_id: string | null;
+  client_id: string | null;
+  report_id: string | null;
   tags: string[];
-  description: string;
-  url: string;
-  createdAt: Date;
-  updatedAt: Date;
+  description: string | null;
+  version: number;
+  created_at: string;
+  updated_at: string;
 }
 
-const store = new InMemoryStore<Document>();
-
-[
-  { name: "Contrato de prestacao de servicos.pdf", category: "contrato", mimeType: "application/pdf", size: 245000, tags: ["contrato", "servicos"] },
-  { name: "Peticao inicial — Proc. 0001234.pdf", category: "peca", mimeType: "application/pdf", size: 189000, tags: ["peticao", "civel"] },
-  { name: "Parecer tributario — Banco Beta.pdf", category: "parecer", mimeType: "application/pdf", size: 312000, tags: ["tributario", "parecer"] },
-  { name: "Procuracao ad judicia.pdf", category: "procuracao", mimeType: "application/pdf", size: 52000, tags: ["procuracao"] },
-  { name: "Modelo — Contestacao trabalhista.docx", category: "modelo", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", size: 78000, tags: ["modelo", "trabalhista"] },
-  { name: "Laudo pericial contabil.pdf", category: "laudo", mimeType: "application/pdf", size: 890000, tags: ["pericia", "contabil"] },
-].forEach((d) => store.create({ ...d, caseId: null, clientId: null, reportId: null, description: "", url: `/documents/${d.name}` } as Omit<Document, "id" | "createdAt" | "updatedAt">));
+const repo = new SupabaseRepository<Document>("documents", ["name", "description"], "Documento");
 
 export class DocumentsService {
-  list(query: any): PaginatedResult<Document> {
-    let items = store.findAll();
-    if (query.search) items = filterBySearch(items, query.search, ["name", "description"]);
-    if (query.category) items = items.filter((d) => d.category === query.category);
-    if (query.caseId) items = items.filter((d) => d.caseId === query.caseId);
-    if (query.clientId) items = items.filter((d) => d.clientId === query.clientId);
-    items = sortBy(items, query.sort as keyof Document, query.order);
-    return paginate(items, query);
+  async list(query: any): Promise<PaginatedResult<Document>> {
+    const filters: Record<string, unknown> = {};
+    if (query.category) filters.category = query.category;
+    if (query.caseId) filters.case_id = query.caseId;
+    if (query.clientId) filters.client_id = query.clientId;
+    return repo.findAll({
+      page: query.page, limit: query.limit,
+      sort: query.sort === "name" ? "name" : query.sort === "size" ? "size_bytes" : "created_at",
+      order: query.order, search: query.search, filters,
+    });
   }
 
-  getById(id: string): Document {
-    const doc = store.findById(id);
-    if (!doc) throw new NotFoundError("Documento");
-    return doc;
+  async getById(id: string): Promise<Document> { return repo.findById(id); }
+
+  async create(input: CreateDocumentInput): Promise<Document> {
+    return repo.create({
+      name: input.name, category: input.category,
+      mime_type: input.mimeType, size_bytes: input.size,
+      case_id: input.caseId ?? null, client_id: input.clientId ?? null,
+      report_id: input.reportId ?? null,
+      tags: input.tags, description: input.description ?? null,
+      storage_path: `/documents/${input.name}`,
+    } as unknown as Partial<Document>);
   }
 
-  create(input: CreateDocumentInput): Document {
-    return store.create({ ...input, caseId: input.caseId ?? null, clientId: input.clientId ?? null, reportId: input.reportId ?? null, description: input.description ?? "", url: `/documents/${input.name}` } as Omit<Document, "id" | "createdAt" | "updatedAt">);
+  async update(id: string, input: UpdateDocumentInput): Promise<Document> {
+    return repo.update(id, input as unknown as Partial<Document>);
   }
 
-  update(id: string, input: UpdateDocumentInput): Document {
-    if (!store.findById(id)) throw new NotFoundError("Documento");
-    return store.update(id, input as Partial<Document>)!;
-  }
+  async delete(id: string): Promise<void> { return repo.softDelete(id); }
 
-  delete(id: string): void {
-    if (!store.findById(id)) throw new NotFoundError("Documento");
-    store.delete(id);
-  }
-
-  getStats() {
-    const all = store.findAll();
+  async getStats() {
+    const db = getSupabase();
+    const { data, error } = await db.from("documents").select("category, size_bytes").is("deleted_at", null);
+    if (error) throw new Error(error.message);
+    const all = data || [];
     const byCategory: Record<string, number> = {};
     let totalSize = 0;
-    for (const d of all) {
-      byCategory[d.category] = (byCategory[d.category] || 0) + 1;
-      totalSize += d.size;
-    }
+    for (const d of all) { byCategory[d.category] = (byCategory[d.category] || 0) + 1; totalSize += d.size_bytes || 0; }
     return { total: all.length, byCategory, totalSize, totalSizeMB: Math.round(totalSize / 1024 / 1024 * 100) / 100 };
   }
 }

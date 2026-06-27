@@ -1,75 +1,73 @@
-import { InMemoryStore } from "../../utils/store";
-import { paginate, sortBy, filterBySearch, PaginatedResult } from "../../utils/pagination";
-import { NotFoundError, ConflictError } from "../../utils/errors";
+import { SupabaseRepository, PaginatedResult } from "../../utils/supabase-repository";
+import { getSupabase } from "../../config/supabase";
+import { ConflictError } from "../../utils/errors";
 import { CreateCaseInput, UpdateCaseInput } from "./cases.schema";
 
 export interface Case {
   id: string;
-  number: string;
+  case_number: string;
   parties: string;
   court: string;
-  judge: string;
+  judge: string | null;
   area: string;
   phase: string;
-  clientId: string | null;
-  value: number;
-  description: string;
-  reportsCount: number;
-  nextDeadline: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+  client_id: string | null;
+  estimated_value: number;
+  description: string | null;
+  next_deadline: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-const store = new InMemoryStore<Case>();
-
-[
-  { number: "0001234-56.2026.8.26", parties: "Oliveira vs. Silva Ltda.", court: "3a Vara Civel - SP", judge: "Dr. Antonio Pereira", area: "Direito civil", phase: "instrucao", value: 150000, reportsCount: 4, nextDeadline: new Date("2026-06-28T14:00:00") },
-  { number: "0007891-23.2025.8.26", parties: "Banco Central vs. Oliveira", court: "12a Vara Federal - SP", judge: "Dra. Maria Santos", area: "Direito civil", phase: "recurso", value: 500000, reportsCount: 8, nextDeadline: new Date("2026-06-30") },
-  { number: "0004567-89.2026.8.26", parties: "Souza vs. Construtora Beta", court: "7a Vara Trabalho - SP", judge: "Dr. Carlos Lima", area: "Direito trabalhista", phase: "conciliacao", value: 80000, reportsCount: 3, nextDeadline: new Date("2026-07-04T10:00:00") },
-].forEach((c) => store.create({ ...c, clientId: null, description: "" } as Omit<Case, "id" | "createdAt" | "updatedAt">));
+const repo = new SupabaseRepository<Case>("cases", ["case_number", "parties", "court", "area"], "Processo");
 
 export class CasesService {
-  list(query: any): PaginatedResult<Case> {
-    let items = store.findAll();
-    if (query.search) items = filterBySearch(items, query.search, ["number", "parties", "court", "area"]);
-    if (query.phase) items = items.filter((c) => c.phase === query.phase);
-    if (query.clientId) items = items.filter((c) => c.clientId === query.clientId);
-    if (query.area) items = items.filter((c) => c.area.toLowerCase().includes(query.area.toLowerCase()));
-    items = sortBy(items, query.sort as keyof Case, query.order);
-    return paginate(items, query);
+  async list(query: any): Promise<PaginatedResult<Case>> {
+    const filters: Record<string, unknown> = {};
+    if (query.phase) filters.phase = query.phase;
+    if (query.clientId) filters.client_id = query.clientId;
+    return repo.findAll({
+      page: query.page, limit: query.limit,
+      sort: query.sort === "number" ? "case_number" : query.sort === "updatedAt" ? "updated_at" : "created_at",
+      order: query.order, search: query.search, filters,
+    });
   }
 
-  getById(id: string): Case {
-    const c = store.findById(id);
-    if (!c) throw new NotFoundError("Processo");
-    return c;
+  async getById(id: string): Promise<Case> { return repo.findById(id); }
+
+  async create(input: CreateCaseInput): Promise<Case> {
+    const db = getSupabase();
+    const { data: dup } = await db.from("cases").select("id").eq("case_number", input.number).is("deleted_at", null).maybeSingle();
+    if (dup) throw new ConflictError("Processo com este numero ja cadastrado.");
+    return repo.create({
+      case_number: input.number, parties: input.parties, court: input.court,
+      judge: input.judge ?? null, area: input.area, phase: input.phase ?? "conhecimento",
+      client_id: input.clientId ?? null, estimated_value: input.value ?? 0,
+      description: input.description ?? null,
+    } as unknown as Partial<Case>);
   }
 
-  create(input: CreateCaseInput): Case {
-    const dup = store.findWhere((c) => c.number === input.number);
-    if (dup.length > 0) throw new ConflictError("Processo com este numero ja cadastrado.");
-    return store.create({ ...input, clientId: input.clientId ?? null, judge: input.judge ?? "", value: input.value ?? 0, description: input.description ?? "", reportsCount: 0, nextDeadline: null } as Omit<Case, "id" | "createdAt" | "updatedAt">);
+  async update(id: string, input: UpdateCaseInput): Promise<Case> {
+    const mapped: any = { ...input };
+    if (input.number !== undefined) { mapped.case_number = input.number; delete mapped.number; }
+    if (input.clientId !== undefined) { mapped.client_id = input.clientId; delete mapped.clientId; }
+    if (input.value !== undefined) { mapped.estimated_value = input.value; delete mapped.value; }
+    return repo.update(id, mapped);
   }
 
-  update(id: string, input: UpdateCaseInput): Case {
-    if (!store.findById(id)) throw new NotFoundError("Processo");
-    return store.update(id, input as Partial<Case>)!;
-  }
+  async delete(id: string): Promise<void> { return repo.softDelete(id); }
 
-  delete(id: string): void {
-    if (!store.findById(id)) throw new NotFoundError("Processo");
-    store.delete(id);
-  }
-
-  getStats() {
-    const all = store.findAll();
+  async getStats() {
+    const db = getSupabase();
+    const { data, error } = await db.from("cases").select("phase, estimated_value, id, case_number, parties, next_deadline").is("deleted_at", null);
+    if (error) throw new Error(error.message);
+    const all = data || [];
     const byPhase: Record<string, number> = {};
     let totalValue = 0;
-    for (const c of all) {
-      byPhase[c.phase] = (byPhase[c.phase] || 0) + 1;
-      totalValue += c.value;
-    }
-    const upcoming = all.filter((c) => c.nextDeadline && c.nextDeadline > new Date()).sort((a, b) => (a.nextDeadline!.getTime() - b.nextDeadline!.getTime())).slice(0, 5);
-    return { total: all.length, byPhase, totalValue, upcomingDeadlines: upcoming.map((c) => ({ id: c.id, number: c.number, parties: c.parties, deadline: c.nextDeadline, phase: c.phase })) };
+    for (const c of all) { byPhase[c.phase] = (byPhase[c.phase] || 0) + 1; totalValue += Number(c.estimated_value) || 0; }
+    const upcoming = all.filter((c) => c.next_deadline && new Date(c.next_deadline) > new Date())
+      .sort((a, b) => new Date(a.next_deadline!).getTime() - new Date(b.next_deadline!).getTime()).slice(0, 5);
+    return { total: all.length, byPhase, totalValue, upcomingDeadlines: upcoming.map((c) => ({ id: c.id, number: c.case_number, parties: c.parties, deadline: c.next_deadline, phase: c.phase })) };
   }
 }
