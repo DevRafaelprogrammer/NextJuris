@@ -6,6 +6,7 @@ import { Sidebar } from "./components/Sidebar";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
 import { UnauthorizedPage } from "./pages/UnauthorizedPage";
+import { AdminPage } from "./pages/admin/AdminPage";
 import type { ReactNode } from "react";
 
 function AppLayout({ children }: { children: ReactNode }) {
@@ -32,7 +33,7 @@ export default function App() {
               <Route path="/auth/forgot" element={<PublicOnlyRoute><div style={{ padding: 40 }}>Forgot password (TODO)</div></PublicOnlyRoute>} />
 
               <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-              <Route path="/admin/*" element={<ProtectedRoute requiredRole="admin"><div style={{ padding: 24 }}>Admin panel (TODO)</div></ProtectedRoute>} />
+              <Route path="/admin/*" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
               <Route path="/relatorios/*" element={<ProtectedRoute requiredPermission="reports:read"><div style={{ padding: 24 }}>Relatorios (TODO)</div></ProtectedRoute>} />
               <Route path="/processos/*" element={<ProtectedRoute requiredPermission="cases:read"><div style={{ padding: 24 }}>Processos (TODO)</div></ProtectedRoute>} />
               <Route path="/clientes/*" element={<ProtectedRoute requiredPermission="clients:read"><div style={{ padding: 24 }}>Clientes (TODO)</div></ProtectedRoute>} />
