@@ -25,10 +25,12 @@ import { StatusCodes } from "http-status-codes";
 export function createApp(): express.Application {
   const app = express();
 
-  app.set("view engine", "ejs");
-  app.set("views", path.join(__dirname, "views"));
+  const frontendDir = path.resolve(__dirname, "..", "..", "front-end");
 
-  app.use(express.static(path.join(__dirname, "public")));
+  app.set("view engine", "ejs");
+  app.set("views", path.join(frontendDir, "views"));
+
+  app.use(express.static(path.join(frontendDir, "public")));
   app.use(requestId);
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
