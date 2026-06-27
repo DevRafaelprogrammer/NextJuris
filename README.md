@@ -1,2 +1,2 @@
 # NextJuris
-site de geração automática de relatórios jurídicos
+Modelo de site de geração automática de relatórios jurídicos
