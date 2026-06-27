@@ -2,10 +2,12 @@ import { Router, Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { validate } from "../../middleware/validate";
 import { authenticate } from "../../middleware/auth";
+import { requireRole, requirePermission, getPermissions } from "../../middleware/roles";
 import { asyncHandler } from "../../utils/async-handler";
 import { sendSuccess, sendCreated, sendNoContent } from "../../utils/response";
 import { BadRequestError } from "../../utils/errors";
 import { getSupabase } from "../../config/supabase";
+import { COOKIE_NAMES, accessTokenCookie, refreshTokenCookie, userDataCookie, clearCookieOpts } from "../../config/cookies";
 import {
   registerSchema,
   registerStep1Schema,
@@ -30,6 +32,31 @@ function getClientIp(req: Request): string | null {
 
 function getUserAgent(req: Request): string | null {
   return (req.headers["user-agent"] as string) || null;
+}
+
+function setAuthCookies(res: Response, tokens: { accessToken: string; refreshToken: string; expiresIn: number }, user: Record<string, unknown>): void {
+  res.cookie(COOKIE_NAMES.ACCESS_TOKEN, tokens.accessToken, accessTokenCookie(tokens.expiresIn * 1000));
+  res.cookie(COOKIE_NAMES.REFRESH_TOKEN, tokens.refreshToken, refreshTokenCookie());
+
+  const safeUser = {
+    id: user.id,
+    full_name: user.full_name,
+    email: user.email,
+    role: user.role,
+    avatar_url: user.avatar_url || null,
+    oab_number: user.oab_number || null,
+    oab_state: user.oab_state || null,
+    permissions: getPermissions(user.role as string),
+  };
+  res.cookie(COOKIE_NAMES.USER_DATA, JSON.stringify(safeUser), userDataCookie());
+}
+
+function clearAuthCookies(res: Response): void {
+  res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, clearCookieOpts());
+  res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, clearCookieOpts("/api/auth"));
+  res.clearCookie(COOKIE_NAMES.USER_DATA, { path: "/" });
+  res.clearCookie(COOKIE_NAMES.SESSION_ID, clearCookieOpts());
+  res.clearCookie(COOKIE_NAMES.PREFERENCES, { path: "/" });
 }
 
 router.post("/register/validate/step1", validate({ body: registerStep1Schema }), asyncHandler(async (req: Request, res: Response) => {
@@ -129,6 +156,7 @@ router.post("/register/validate/field", validate({ body: validateFieldSchema }),
 
 router.post("/register", validate({ body: registerSchema }), asyncHandler(async (req: Request, res: Response) => {
   const result = await service.register(req.body);
+  setAuthCookies(res, result.tokens, result.user);
   sendCreated(res, result);
 }));
 
@@ -162,22 +190,29 @@ router.get("/register/areas", asyncHandler(async (_req: Request, res: Response) 
 
 router.post("/login", validate({ body: loginSchema }), asyncHandler(async (req: Request, res: Response) => {
   const result = await service.login(req.body, getClientIp(req), getUserAgent(req));
-  sendSuccess(res, result);
+  setAuthCookies(res, result.tokens, result.user);
+  sendSuccess(res, { ...result, permissions: getPermissions(result.user.role as string) });
 }));
 
-router.post("/refresh", validate({ body: refreshTokenSchema }), asyncHandler(async (req: Request, res: Response) => {
-  const tokens = await service.refreshToken(req.body.refreshToken);
+router.post("/refresh", asyncHandler(async (req: Request, res: Response) => {
+  const token = req.body?.refreshToken || (req as any).signedCookies?.[COOKIE_NAMES.REFRESH_TOKEN];
+  if (!token) throw new BadRequestError("Refresh token ausente");
+  const tokens = await service.refreshToken(token);
+  res.cookie(COOKIE_NAMES.ACCESS_TOKEN, tokens.accessToken, accessTokenCookie(tokens.expiresIn * 1000));
+  res.cookie(COOKIE_NAMES.REFRESH_TOKEN, tokens.refreshToken, refreshTokenCookie());
   sendSuccess(res, tokens);
 }));
 
 router.post("/logout", asyncHandler(async (req: Request, res: Response) => {
-  const token = req.body?.refreshToken;
+  const token = req.body?.refreshToken || (req as any).signedCookies?.[COOKIE_NAMES.REFRESH_TOKEN];
   if (token) await service.logout(token);
+  clearAuthCookies(res);
   sendSuccess(res, { loggedOut: true });
 }));
 
 router.post("/logout-all", authenticate, asyncHandler(async (req: Request, res: Response) => {
   const count = await service.logoutAll(req.user!.sub);
+  clearAuthCookies(res);
   sendSuccess(res, { revokedSessions: count });
 }));
 
@@ -201,7 +236,7 @@ router.get("/me", authenticate, asyncHandler(async (req: Request, res: Response)
   const { data: user } = await db.from("users").select("*").eq("id", req.user!.sub).is("deleted_at", null).maybeSingle();
   if (!user) { sendSuccess(res, null); return; }
   const { two_factor_secret, ...safe } = user;
-  sendSuccess(res, safe);
+  sendSuccess(res, { ...safe, permissions: getPermissions(safe.role) });
 }));
 
 router.get("/sessions", authenticate, asyncHandler(async (req: Request, res: Response) => {

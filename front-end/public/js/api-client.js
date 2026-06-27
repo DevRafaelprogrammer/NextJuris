@@ -1,8 +1,20 @@
 const NJApi = (() => {
   const BASE = '/api';
+
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : null;
+  }
+
+  function parseUserCookie() {
+    const raw = getCookie('nj_user');
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch { return null; }
+  }
+
   let accessToken = localStorage.getItem('nj_access_token');
   let refreshToken = localStorage.getItem('nj_refresh_token');
-  let currentUser = JSON.parse(localStorage.getItem('nj_user') || 'null');
+  let currentUser = parseUserCookie() || JSON.parse(localStorage.getItem('nj_user') || 'null');
   let refreshPromise = null;
   const listeners = { auth: [], user: [], error: [] };
 
@@ -162,7 +174,7 @@ const NJApi = (() => {
     const headers = { 'Content-Type': 'application/json' };
     if (accessToken && !opts.noAuth) headers['Authorization'] = `Bearer ${accessToken}`;
 
-    const config = { method, headers };
+    const config = { method, headers, credentials: 'same-origin' };
     if (body && method !== 'GET') config.body = JSON.stringify(body);
 
     let url = `${BASE}${path}`;
