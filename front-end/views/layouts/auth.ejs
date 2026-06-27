@@ -97,59 +97,159 @@
         </div>
 
         <div class="nj-auth-page" id="auth-register">
-          <a class="nj-auth-back-link" data-auth-nav="login"><i class="ti ti-arrow-left" aria-hidden="true"></i> Voltar ao login</a>
+          <a class="nj-auth-back-link" id="reg-back-link" data-auth-nav="login"><i class="ti ti-arrow-left" aria-hidden="true"></i> Voltar ao login</a>
           <div class="nj-auth-form-header">
-            <div class="nj-auth-eyebrow">Novo cadastro</div>
-            <h1 class="nj-auth-title">Criar sua conta</h1>
-            <p class="nj-auth-subtitle">Preencha os dados para acessar a plataforma.</p>
+            <div class="nj-auth-eyebrow" id="reg-eyebrow">Etapa 1 de 3</div>
+            <h1 class="nj-auth-title" id="reg-title">Dados pessoais</h1>
+            <p class="nj-auth-subtitle" id="reg-subtitle">Informacoes basicas para identificacao no sistema.</p>
           </div>
-          <div class="nj-auth-steps" id="reg-strength">
-            <div class="nj-auth-step"></div>
-            <div class="nj-auth-step"></div>
-            <div class="nj-auth-step"></div>
-            <div class="nj-auth-step"></div>
+
+          <div class="nj-auth-steps" id="reg-stepper">
+            <div class="nj-auth-step active" data-step="0"></div>
+            <div class="nj-auth-step" data-step="1"></div>
+            <div class="nj-auth-step" data-step="2"></div>
           </div>
+
           <div class="nj-auth-alert" id="reg-alert"><i class="ti ti-circle-check" aria-hidden="true"></i><span></span></div>
+
           <form id="register-form" novalidate>
-            <div class="nj-auth-field">
-              <label class="nj-auth-label" for="reg-name">Nome completo</label>
-              <div class="nj-auth-input-wrap">
-                <i class="ti ti-user nj-auth-input-icon" aria-hidden="true"></i>
-                <input type="text" class="nj-auth-input" id="reg-name" placeholder="Dr. Rafael Oliveira" autocomplete="name" spellcheck="false">
+
+            <div id="reg-step-0">
+              <div class="nj-auth-field">
+                <label class="nj-auth-label" for="reg-name">Nome completo <span style="color:var(--nj-danger,#C0392B)">*</span></label>
+                <div class="nj-auth-input-wrap">
+                  <i class="ti ti-user nj-auth-input-icon" aria-hidden="true"></i>
+                  <input type="text" class="nj-auth-input" id="reg-name" name="fullName" placeholder="Dr. Rafael Oliveira da Silva" autocomplete="name" spellcheck="false">
+                </div>
+                <span class="nj-auth-helper" id="reg-name-help"></span>
               </div>
-              <span class="nj-auth-helper" id="reg-name-help"></span>
-            </div>
-            <div class="nj-auth-field">
-              <label class="nj-auth-label" for="reg-email">E-mail profissional</label>
-              <div class="nj-auth-input-wrap">
-                <i class="ti ti-mail nj-auth-input-icon" aria-hidden="true"></i>
-                <input type="email" class="nj-auth-input" id="reg-email" placeholder="advogado@escritorio.com.br" autocomplete="email" spellcheck="false">
+              <div class="nj-auth-field">
+                <label class="nj-auth-label" for="reg-cpf">CPF <span style="color:var(--nj-danger,#C0392B)">*</span></label>
+                <div class="nj-auth-input-wrap">
+                  <i class="ti ti-id nj-auth-input-icon" aria-hidden="true"></i>
+                  <input type="text" class="nj-auth-input" id="reg-cpf" name="cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
+                </div>
+                <span class="nj-auth-helper" id="reg-cpf-help"></span>
               </div>
-              <span class="nj-auth-helper" id="reg-email-help"></span>
-            </div>
-            <div class="nj-auth-field">
-              <label class="nj-auth-label" for="reg-pass">Criar senha</label>
-              <div class="nj-auth-input-wrap">
-                <i class="ti ti-lock nj-auth-input-icon" aria-hidden="true"></i>
-                <input type="password" class="nj-auth-input" id="reg-pass" placeholder="Minimo 8 caracteres" autocomplete="new-password" style="padding-right:40px">
-                <button type="button" class="nj-auth-input-action" id="reg-eye" aria-label="Mostrar senha"><i class="ti ti-eye"></i></button>
+              <div class="nj-auth-field">
+                <label class="nj-auth-label" for="reg-email">E-mail profissional <span style="color:var(--nj-danger,#C0392B)">*</span></label>
+                <div class="nj-auth-input-wrap">
+                  <i class="ti ti-mail nj-auth-input-icon" aria-hidden="true"></i>
+                  <input type="email" class="nj-auth-input" id="reg-email" name="email" placeholder="advogado@escritorio.com.br" autocomplete="email" spellcheck="false">
+                </div>
+                <span class="nj-auth-helper" id="reg-email-help"></span>
               </div>
-              <span class="nj-auth-helper" id="reg-pass-help"></span>
+              <div class="nj-auth-field">
+                <label class="nj-auth-label" for="reg-phone">Telefone <span style="font-weight:400;color:var(--nj-text-muted,#94A1AD);font-size:11px">(opcional)</span></label>
+                <div class="nj-auth-input-wrap">
+                  <i class="ti ti-phone nj-auth-input-icon" aria-hidden="true"></i>
+                  <input type="tel" class="nj-auth-input" id="reg-phone" name="phone" placeholder="(11) 99999-0000" maxlength="15" inputmode="tel">
+                </div>
+                <span class="nj-auth-helper" id="reg-phone-help"></span>
+              </div>
             </div>
-            <div style="margin-bottom:16px">
-              <label class="nj-auth-check">
-                <input type="checkbox" id="reg-terms">
-                <span class="nj-auth-check-box"><i class="ti ti-check" aria-hidden="true"></i></span>
-                Li e aceito os <a class="nj-auth-label-link" href="#">termos de uso</a> e <a class="nj-auth-label-link" href="#">politica de privacidade</a>
-              </label>
-              <span class="nj-auth-helper" id="reg-terms-help" style="margin-top:4px"></span>
+
+            <div id="reg-step-1" style="display:none">
+              <div style="display:grid;grid-template-columns:1fr 100px;gap:8px">
+                <div class="nj-auth-field">
+                  <label class="nj-auth-label" for="reg-oab">Registro OAB <span style="color:var(--nj-danger,#C0392B)">*</span></label>
+                  <div class="nj-auth-input-wrap">
+                    <i class="ti ti-certificate nj-auth-input-icon" aria-hidden="true"></i>
+                    <input type="text" class="nj-auth-input" id="reg-oab" name="oabNumber" placeholder="123456" maxlength="6" inputmode="numeric">
+                  </div>
+                  <span class="nj-auth-helper" id="reg-oab-help"></span>
+                </div>
+                <div class="nj-auth-field">
+                  <label class="nj-auth-label" for="reg-oab-state">UF <span style="color:var(--nj-danger,#C0392B)">*</span></label>
+                  <div class="nj-auth-input-wrap" style="position:relative">
+                    <select class="nj-auth-input" id="reg-oab-state" name="oabState" style="padding-left:12px;padding-right:28px;appearance:none;cursor:pointer">
+                      <option value="">UF</option>
+                    </select>
+                    <i class="ti ti-chevron-down" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--nj-text-muted,#94A1AD);pointer-events:none" aria-hidden="true"></i>
+                  </div>
+                  <span class="nj-auth-helper" id="reg-oab-state-help"></span>
+                </div>
+              </div>
+              <div class="nj-auth-field">
+                <label class="nj-auth-label" for="reg-area">Area de atuacao <span style="color:var(--nj-danger,#C0392B)">*</span></label>
+                <div class="nj-auth-input-wrap" style="position:relative">
+                  <i class="ti ti-gavel nj-auth-input-icon" aria-hidden="true"></i>
+                  <select class="nj-auth-input" id="reg-area" name="area" style="padding-left:38px;padding-right:28px;appearance:none;cursor:pointer">
+                    <option value="">Selecionar area</option>
+                  </select>
+                  <i class="ti ti-chevron-down" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--nj-text-muted,#94A1AD);pointer-events:none" aria-hidden="true"></i>
+                </div>
+                <span class="nj-auth-helper" id="reg-area-help"></span>
+              </div>
+              <div class="nj-auth-field">
+                <label class="nj-auth-label" for="reg-office">Escritorio / banca <span style="font-weight:400;color:var(--nj-text-muted,#94A1AD);font-size:11px">(opcional)</span></label>
+                <div class="nj-auth-input-wrap">
+                  <i class="ti ti-building nj-auth-input-icon" aria-hidden="true"></i>
+                  <input type="text" class="nj-auth-input" id="reg-office" name="officeName" placeholder="Oliveira & Associados" spellcheck="false">
+                </div>
+              </div>
+              <div class="nj-auth-field">
+                <label class="nj-auth-label" for="reg-comarca">Comarca principal <span style="font-weight:400;color:var(--nj-text-muted,#94A1AD);font-size:11px">(opcional)</span></label>
+                <div class="nj-auth-input-wrap" style="position:relative">
+                  <i class="ti ti-map-pin nj-auth-input-icon" aria-hidden="true"></i>
+                  <select class="nj-auth-input" id="reg-comarca" name="comarca" style="padding-left:38px;padding-right:28px;appearance:none;cursor:pointer">
+                    <option value="">Selecionar comarca</option>
+                  </select>
+                  <i class="ti ti-chevron-down" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--nj-text-muted,#94A1AD);pointer-events:none" aria-hidden="true"></i>
+                </div>
+              </div>
             </div>
-            <button type="submit" class="nj-auth-submit" id="reg-submit" data-label="Criar conta">
-              <span class="nj-btn-spinner"></span>
-              <span class="nj-auth-submit-label">Criar conta</span>
-              <i class="ti ti-check nj-auth-submit-icon" aria-hidden="true" style="font-size:16px"></i>
-            </button>
+
+            <div id="reg-step-2" style="display:none">
+              <div class="nj-auth-field">
+                <label class="nj-auth-label" for="reg-pass">Criar senha <span style="color:var(--nj-danger,#C0392B)">*</span></label>
+                <div class="nj-auth-input-wrap">
+                  <i class="ti ti-lock nj-auth-input-icon" aria-hidden="true"></i>
+                  <input type="password" class="nj-auth-input" id="reg-pass" name="password" placeholder="Minimo 8 caracteres" autocomplete="new-password" style="padding-right:40px">
+                  <button type="button" class="nj-auth-input-action" id="reg-eye" aria-label="Mostrar senha"><i class="ti ti-eye"></i></button>
+                </div>
+                <div class="nj-auth-steps" id="reg-strength" style="margin-top:6px">
+                  <div class="nj-auth-step"></div>
+                  <div class="nj-auth-step"></div>
+                  <div class="nj-auth-step"></div>
+                  <div class="nj-auth-step"></div>
+                </div>
+                <span class="nj-auth-helper" id="reg-pass-help"></span>
+              </div>
+              <div class="nj-auth-field">
+                <label class="nj-auth-label" for="reg-pass2">Confirmar senha <span style="color:var(--nj-danger,#C0392B)">*</span></label>
+                <div class="nj-auth-input-wrap">
+                  <i class="ti ti-lock-check nj-auth-input-icon" aria-hidden="true"></i>
+                  <input type="password" class="nj-auth-input" id="reg-pass2" name="confirmPassword" placeholder="Repita a senha" autocomplete="new-password" style="padding-right:40px">
+                  <button type="button" class="nj-auth-input-action" id="reg-eye2" aria-label="Mostrar senha"><i class="ti ti-eye"></i></button>
+                </div>
+                <span class="nj-auth-helper" id="reg-pass2-help"></span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+                <label class="nj-auth-check">
+                  <input type="checkbox" id="reg-terms" name="acceptTerms">
+                  <span class="nj-auth-check-box"><i class="ti ti-check" aria-hidden="true"></i></span>
+                  Li e aceito os <a class="nj-auth-label-link" href="#">termos de uso</a> e a <a class="nj-auth-label-link" href="#">politica de privacidade</a>
+                </label>
+                <label class="nj-auth-check">
+                  <input type="checkbox" id="reg-lgpd" name="acceptLgpd">
+                  <span class="nj-auth-check-box"><i class="ti ti-check" aria-hidden="true"></i></span>
+                  Autorizo o tratamento dos meus dados conforme a LGPD
+                </label>
+                <span class="nj-auth-helper" id="reg-terms-help"></span>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button type="button" class="nj-auth-social-btn" id="reg-prev-btn" style="display:none;flex:0 0 110px"><i class="ti ti-arrow-left" aria-hidden="true"></i> Voltar</button>
+              <button type="button" class="nj-auth-submit" id="reg-next-btn" style="flex:1" data-label="Proximo">
+                <span class="nj-btn-spinner"></span>
+                <span class="nj-auth-submit-label">Proximo</span>
+                <i class="ti ti-arrow-right nj-auth-submit-icon" aria-hidden="true" style="font-size:16px"></i>
+              </button>
+            </div>
           </form>
+
           <div class="nj-auth-divider"><span>ou cadastre com</span></div>
           <div class="nj-auth-social">
             <button class="nj-auth-social-btn"><i class="ti ti-certificate" aria-hidden="true"></i> Certificado digital (OAB)</button>
