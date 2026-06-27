@@ -90,9 +90,38 @@ const NJAuth = (() => {
         setTimeout(() => NJAuthGuard.redirectToApp(), 800);
       } catch (err) {
         setSubmitLoading('login-submit', false);
-        showAlert('login-alert', 'error', err.message || 'Erro ao autenticar.');
-        passInput.value = '';
-        passInput.focus();
+
+        if (err.isAccountLocked) {
+          showAlert('login-alert', 'error', err.userMessage);
+        } else if (err.isAccountSuspended) {
+          showAlert('login-alert', 'error', err.userMessage);
+        } else if (err.isAccountPending) {
+          showAlert('login-alert', 'error', err.userMessage);
+        } else if (err.isAccountInactive) {
+          showAlert('login-alert', 'error', err.userMessage);
+        } else if (err.isInvalidCredentials) {
+          const remaining = err.remainingAttempts;
+          const msg = remaining ? `${err.userMessage} ${remaining} tentativa${remaining !== '1' ? 's' : ''} restante${remaining !== '1' ? 's' : ''}.` : err.userMessage;
+          showAlert('login-alert', 'error', msg);
+          showFieldError('login-email', 'login-email-help', '');
+          showFieldError('login-pass', 'login-pass-help', 'Senha incorreta');
+          passInput.value = '';
+          passInput.focus();
+        } else if (err.isRateLimit) {
+          showAlert('login-alert', 'error', err.userMessage);
+        } else if (err.isValidation) {
+          const fields = err.validationErrors;
+          if (fields.email) showFieldError('login-email', 'login-email-help', fields.email);
+          if (fields.password) showFieldError('login-pass', 'login-pass-help', fields.password);
+        } else if (err.isNetworkError) {
+          showAlert('login-alert', 'error', 'Sem conexao com o servidor. Verifique sua internet.');
+        } else if (err.isServerError) {
+          showAlert('login-alert', 'error', 'Erro no servidor. Tente novamente em alguns minutos.');
+        } else {
+          showAlert('login-alert', 'error', err.userMessage || 'Erro ao autenticar.');
+          passInput.value = '';
+          passInput.focus();
+        }
       }
     });
   }
@@ -164,7 +193,25 @@ const NJAuth = (() => {
         setTimeout(() => NJAuthGuard.redirectToApp(), 800);
       } catch (err) {
         setSubmitLoading('reg-submit', false);
-        showAlert('reg-alert', 'error', err.message || 'Erro ao criar conta.');
+
+        if (err.isDuplicate) {
+          const field = err.context?.field || 'E-mail';
+          showAlert('reg-alert', 'error', `${field} ja cadastrado. Use outro ou faca login.`);
+          if (field.toLowerCase().includes('mail')) showFieldError('reg-email', 'reg-email-help', 'E-mail ja cadastrado');
+        } else if (err.isValidation) {
+          const fields = err.validationErrors;
+          if (fields.fullName) showFieldError('reg-name', 'reg-name-help', fields.fullName);
+          if (fields.email) showFieldError('reg-email', 'reg-email-help', fields.email);
+          if (fields.password) showFieldError('reg-pass', 'reg-pass-help', fields.password);
+          if (fields.confirmPassword) showFieldError('reg-pass', 'reg-pass-help', fields.confirmPassword);
+          showAlert('reg-alert', 'error', 'Corrija os campos destacados.');
+        } else if (err.isRateLimit) {
+          showAlert('reg-alert', 'error', err.userMessage);
+        } else if (err.isNetworkError) {
+          showAlert('reg-alert', 'error', 'Sem conexao. Verifique sua internet.');
+        } else {
+          showAlert('reg-alert', 'error', err.userMessage || 'Erro ao criar conta.');
+        }
       }
     });
   }
@@ -191,7 +238,13 @@ const NJAuth = (() => {
         await NJApi.auth.forgotPassword(emailInput.value.trim());
         showAlert('forgot-alert', 'success', 'E-mail enviado. Verifique sua caixa de entrada.');
       } catch (err) {
-        showAlert('forgot-alert', 'error', err.message || 'Erro ao enviar e-mail.');
+        if (err.isRateLimit) {
+          showAlert('forgot-alert', 'error', 'Muitas solicitacoes. Aguarde 1 hora para tentar novamente.');
+        } else if (err.isValidation) {
+          showFieldError('forgot-email', 'forgot-email-help', err.validationErrors?.email || 'E-mail invalido');
+        } else {
+          showAlert('forgot-alert', 'error', err.userMessage || 'Erro ao enviar e-mail.');
+        }
       } finally {
         setSubmitLoading('forgot-submit', false);
       }
