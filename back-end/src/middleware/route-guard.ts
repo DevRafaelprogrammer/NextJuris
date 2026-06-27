@@ -23,6 +23,7 @@ const PUBLIC_API_RULES: RouteRule[] = [
   { pattern: "/api/auth/refresh", methods: ["POST"] },
   { pattern: "/api/auth/forgot-password", methods: ["POST"] },
   { pattern: "/api/auth/reset-password", methods: ["POST"] },
+  { pattern: /^\/api\/auth\/google/ },
   { pattern: "/api/errors/catalog", methods: ["GET"] },
 ];
 

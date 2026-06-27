@@ -254,4 +254,44 @@ router.delete("/sessions/:sessionId", authenticate, asyncHandler(async (req: Req
   sendNoContent(res);
 }));
 
+// ─── Google OAuth ───────────────────────────
+
+import { getGoogleAuthUrl, handleGoogleCallback } from "./google.service";
+import { env } from "../../config/env";
+
+router.get("/google", (_req: Request, res: Response) => {
+  if (!env.GOOGLE_CLIENT_ID) {
+    sendSuccess(res, { enabled: false, message: "Google OAuth nao configurado." });
+    return;
+  }
+  const returnTo = typeof _req.query.returnTo === "string" ? _req.query.returnTo : "/";
+  const url = getGoogleAuthUrl(returnTo);
+  res.redirect(url);
+});
+
+router.get("/google/callback", asyncHandler(async (req: Request, res: Response) => {
+  const code = req.query.code as string;
+  const state = (req.query.state as string) || "/";
+
+  if (!code) {
+    res.redirect("/auth#login?error=google_cancelled");
+    return;
+  }
+
+  try {
+    await handleGoogleCallback(code, res, getClientIp(req), getUserAgent(req));
+    res.redirect(state || "/");
+  } catch (err: any) {
+    const errorCode = err.code || "google_error";
+    res.redirect(`/auth#login?error=${errorCode}&message=${encodeURIComponent(err.message || "Erro no login Google")}`);
+  }
+}));
+
+router.get("/google/status", (_req: Request, res: Response) => {
+  sendSuccess(res, {
+    enabled: !!env.GOOGLE_CLIENT_ID,
+    clientId: env.GOOGLE_CLIENT_ID ? env.GOOGLE_CLIENT_ID.slice(0, 20) + "..." : null,
+  });
+});
+
 export { router as authRoutes };

@@ -17,6 +17,9 @@ const envSchema = z.object({
   SUPABASE_SERVICE_KEY: z.string().min(20),
   DATABASE_URL: z.string().optional().default(""),
   DIRECT_URL: z.string().optional().default(""),
+  GOOGLE_CLIENT_ID: z.string().optional().default(""),
+  GOOGLE_CLIENT_SECRET: z.string().optional().default(""),
+  GOOGLE_REDIRECT_URI: z.string().optional().default("http://localhost:3000/api/auth/google/callback"),
 });
 
 const parsed = envSchema.safeParse(process.env);
