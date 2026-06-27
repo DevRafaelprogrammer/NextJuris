@@ -21,6 +21,7 @@ import { casesRoutes } from "./modules/cases/cases.routes";
 import { clientsRoutes } from "./modules/clients/clients.routes";
 import { documentsRoutes } from "./modules/documents/documents.routes";
 import { calendarRoutes } from "./modules/calendar/calendar.routes";
+import { adminRoutes } from "./modules/admin/admin.routes";
 import { dashboardRoutes } from "./modules/dashboard/dashboard.routes";
 import { searchRoutes } from "./modules/search/search.routes";
 import { sendSuccess } from "./utils/response";
@@ -119,6 +120,7 @@ export function createApp(): express.Application {
 
   app.use("/api/auth", authRoutes);
 
+  app.use("/api/admin", adminRoutes);
   app.use("/api/users", authenticate, usersRoutes);
   app.use("/api/reports", authenticate, reportsRoutes);
   app.use("/api/cases", authenticate, casesRoutes);
