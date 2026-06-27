@@ -16,6 +16,7 @@ interface PermissionContextValue {
   canAny: (...permissions: string[]) => boolean;
   hasRole: (...roles: Role[]) => boolean;
   hasMinRole: (minRole: Role) => boolean;
+  hasMaxRole: (maxRole: Role) => boolean;
   isAdmin: boolean;
   isSocio: boolean;
   isAdvogado: boolean;
@@ -41,6 +42,7 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
       canAny: (...ps: string[]) => ps.some(p => permSet.has(p)),
       hasRole: (...roles: Role[]) => !!role && roles.includes(role),
       hasMinRole: (min: Role) => roleLevel >= (ROLE_HIERARCHY[min] || 0),
+      hasMaxRole: (max: Role) => roleLevel <= (ROLE_HIERARCHY[max] || 0),
       isAdmin: role === "admin",
       isSocio: role === "socio" || role === "admin",
       isAdvogado: roleLevel >= ROLE_HIERARCHY.advogado,
