@@ -11,6 +11,13 @@ import { requestId } from "./middleware/request-id";
 import { healthRoutes } from "./modules/health/health.routes";
 import { authRoutes } from "./modules/auth/auth.routes";
 import { usersRoutes } from "./modules/users/users.routes";
+import { reportsRoutes } from "./modules/reports/reports.routes";
+import { casesRoutes } from "./modules/cases/cases.routes";
+import { clientsRoutes } from "./modules/clients/clients.routes";
+import { documentsRoutes } from "./modules/documents/documents.routes";
+import { calendarRoutes } from "./modules/calendar/calendar.routes";
+import { dashboardRoutes } from "./modules/dashboard/dashboard.routes";
+import { searchRoutes } from "./modules/search/search.routes";
 
 import { sendError } from "./utils/response";
 import { StatusCodes } from "http-status-codes";
@@ -64,6 +71,13 @@ export function createApp(): express.Application {
   app.use("/api/health", healthRoutes);
   app.use("/api/auth", authRoutes);
   app.use("/api/users", usersRoutes);
+  app.use("/api/reports", reportsRoutes);
+  app.use("/api/cases", casesRoutes);
+  app.use("/api/clients", clientsRoutes);
+  app.use("/api/documents", documentsRoutes);
+  app.use("/api/calendar", calendarRoutes);
+  app.use("/api/dashboard", dashboardRoutes);
+  app.use("/api/search", searchRoutes);
 
   app.use((_req, res) => {
     sendError(res, StatusCodes.NOT_FOUND, "ROUTE_NOT_FOUND", "Route not found");
