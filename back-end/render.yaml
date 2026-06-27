@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: nextjuris-api
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npx prisma generate
+    startCommand: npx tsx src/server.ts
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: NODE_VERSION
+        value: "20"
