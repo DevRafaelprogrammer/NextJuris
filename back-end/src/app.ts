@@ -6,7 +6,7 @@ import compression from "compression";
 import rateLimit from "express-rate-limit";
 import path from "path";
 import { env } from "./config/env";
-import { errorHandler } from "./middleware/error-handler";
+import { errorHandler, notFoundHandler, getErrorMetrics } from "./middleware/error-handler";
 import { requestId } from "./middleware/request-id";
 import { healthRoutes } from "./modules/health/health.routes";
 import { authRoutes } from "./modules/auth/auth.routes";
@@ -19,8 +19,8 @@ import { calendarRoutes } from "./modules/calendar/calendar.routes";
 import { dashboardRoutes } from "./modules/dashboard/dashboard.routes";
 import { searchRoutes } from "./modules/search/search.routes";
 
-import { sendError } from "./utils/response";
-import { StatusCodes } from "http-status-codes";
+import { sendSuccess } from "./utils/response";
+import { ERROR_CATALOG } from "./utils/errors";
 
 export function createApp(): express.Application {
   const app = express();
@@ -81,10 +81,15 @@ export function createApp(): express.Application {
   app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/search", searchRoutes);
 
-  app.use((_req, res) => {
-    sendError(res, StatusCodes.NOT_FOUND, "ROUTE_NOT_FOUND", "Route not found");
+  app.get("/api/errors/catalog", (_req, res) => {
+    sendSuccess(res, ERROR_CATALOG);
   });
 
+  app.get("/api/errors/metrics", (_req, res) => {
+    sendSuccess(res, getErrorMetrics());
+  });
+
+  app.use(notFoundHandler);
   app.use(errorHandler);
 
   return app;
