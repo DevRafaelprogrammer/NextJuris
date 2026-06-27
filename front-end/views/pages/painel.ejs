@@ -27,25 +27,25 @@
   <div class="nj-kpi-row">
     <div class="nj-kpi" data-nav="relatorios">
       <div class="nj-kpi-label"><i class="ti ti-file-text" aria-hidden="true"></i> Relatorios gerados</div>
-      <div class="nj-kpi-value">248</div>
+      <div class="nj-kpi-value" id="stat-reports">--</div>
       <div class="nj-kpi-change up"><i class="ti ti-trending-up" aria-hidden="true"></i> +12% este mes</div>
       <div class="nj-kpi-bar"><div class="nj-progress"><div class="nj-progress-bar" style="width:78%"></div></div></div>
     </div>
     <div class="nj-kpi" data-nav="processos">
       <div class="nj-kpi-label"><i class="ti ti-gavel" aria-hidden="true"></i> Processos ativos</div>
-      <div class="nj-kpi-value">37</div>
+      <div class="nj-kpi-value" id="stat-cases">--</div>
       <div class="nj-kpi-change up"><i class="ti ti-trending-up" aria-hidden="true"></i> +3 novos</div>
       <div class="nj-kpi-bar"><div class="nj-progress"><div class="nj-progress-bar" style="width:62%"></div></div></div>
     </div>
     <div class="nj-kpi" data-nav="clientes">
       <div class="nj-kpi-label"><i class="ti ti-users" aria-hidden="true"></i> Clientes</div>
-      <div class="nj-kpi-value">84</div>
+      <div class="nj-kpi-value" id="stat-clients">--</div>
       <div class="nj-kpi-change up"><i class="ti ti-trending-up" aria-hidden="true"></i> +5 este mes</div>
       <div class="nj-kpi-bar"><div class="nj-progress"><div class="nj-progress-bar success" style="width:91%"></div></div></div>
     </div>
     <div class="nj-kpi" data-nav="analises">
       <div class="nj-kpi-label"><i class="ti ti-brain" aria-hidden="true"></i> Precisao IA</div>
-      <div class="nj-kpi-value">97%</div>
+      <div class="nj-kpi-value" id="stat-precision">--</div>
       <div class="nj-kpi-change up"><i class="ti ti-trending-up" aria-hidden="true"></i> +0.5%</div>
       <div class="nj-kpi-bar"><div class="nj-progress"><div class="nj-progress-bar success" style="width:97%"></div></div></div>
     </div>
@@ -60,7 +60,7 @@
         </div>
         <div class="nj-panel">
           <div class="nj-panel-body-flush">
-            <ul class="nj-list">
+            <ul class="nj-list" id="activity-list">
               <li class="nj-list-item" style="padding:10px 16px">
                 <div class="nj-list-item-icon"><i class="ti ti-file-text" aria-hidden="true"></i></div>
                 <div class="nj-list-item-content">
@@ -112,7 +112,7 @@
         </div>
         <div class="nj-panel">
           <div class="nj-panel-body">
-            <div class="nj-timeline">
+            <div class="nj-timeline" id="deadline-list">
               <div class="nj-timeline-item">
                 <div class="nj-timeline-dot danger"></div>
                 <div class="nj-timeline-title"><a class="nj-inline-link" data-nav="processos">Contestacao — Silva vs. Banco Central</a></div>

@@ -50,35 +50,9 @@ const NJAuth = (() => {
     if (icon) icon.style.display = loading ? 'none' : 'inline';
   }
 
-  function validateEmail(v) {
-    if (!v.trim()) return 'Informe seu e-mail.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) && !/^\w{2}\s?\d{3,6}$/i.test(v.trim())) return 'Formato invalido.';
-    return '';
-  }
-
-  function validatePassword(v) {
-    if (!v) return 'Informe sua senha.';
-    if (v.length < 6) return 'Minimo 6 caracteres.';
-    return '';
-  }
-
-  function validateName(v) {
-    if (!v.trim()) return 'Informe seu nome.';
-    if (v.trim().split(' ').length < 2) return 'Informe nome e sobrenome.';
-    return '';
-  }
-
-  function validatePasswordStrength(v) {
-    if (!v) return 'Crie uma senha.';
-    if (v.length < 8) return 'Minimo 8 caracteres.';
-    if (!/[A-Z]/.test(v) || !/[a-z]/.test(v) || !/[0-9]/.test(v)) return 'Use maiusculas, minusculas e numeros.';
-    return '';
-  }
-
   function initLogin() {
     const form = document.getElementById('login-form');
     if (!form) return;
-
     const emailInput = document.getElementById('login-email');
     const passInput = document.getElementById('login-pass');
     const eyeBtn = document.getElementById('login-eye');
@@ -92,42 +66,40 @@ const NJAuth = (() => {
     }
 
     [emailInput, passInput].forEach(inp => {
-      if (inp) inp.addEventListener('input', () => {
-        inp.classList.remove('error');
-        clearAlerts();
-      });
+      if (inp) inp.addEventListener('input', () => { inp.classList.remove('error'); clearAlerts(); });
     });
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAlerts();
       let valid = true;
-      const eErr = validateEmail(emailInput.value);
-      const pErr = validatePassword(passInput.value);
-      if (eErr) { showFieldError('login-email', 'login-email-help', eErr); valid = false; }
-      if (pErr) { showFieldError('login-pass', 'login-pass-help', pErr); valid = false; }
+
+      if (!emailInput.value.trim()) { showFieldError('login-email', 'login-email-help', 'Informe seu e-mail.'); valid = false; }
+      if (!passInput.value) { showFieldError('login-pass', 'login-pass-help', 'Informe sua senha.'); valid = false; }
       if (!valid) return;
 
       setSubmitLoading('login-submit', true, 'Autenticando');
-      setTimeout(() => {
+
+      try {
+        await NJApi.auth.login({
+          email: emailInput.value.trim(),
+          password: passInput.value,
+          rememberMe: document.querySelector('#login-form input[type="checkbox"]')?.checked || false,
+        });
+        showAlert('login-alert', 'success', 'Autenticado. Redirecionando...');
+        setTimeout(() => NJAuthGuard.redirectToApp(), 800);
+      } catch (err) {
         setSubmitLoading('login-submit', false);
-        const isDemoUser = emailInput.value.toLowerCase().includes('demo') || emailInput.value.toLowerCase().includes('rafael');
-        if (isDemoUser) {
-          showAlert('login-alert', 'success', 'Autenticado. Redirecionando ao painel...');
-          setTimeout(() => { window.location.href = '/'; }, 1500);
-        } else {
-          showAlert('login-alert', 'error', 'Credenciais invalidas. Verifique e tente novamente.');
-          passInput.value = '';
-          passInput.focus();
-        }
-      }, 1800);
+        showAlert('login-alert', 'error', err.message || 'Erro ao autenticar.');
+        passInput.value = '';
+        passInput.focus();
+      }
     });
   }
 
   function initRegister() {
     const form = document.getElementById('register-form');
     if (!form) return;
-
     const nameInput = document.getElementById('reg-name');
     const emailInput = document.getElementById('reg-email');
     const passInput = document.getElementById('reg-pass');
@@ -162,28 +134,38 @@ const NJAuth = (() => {
       if (inp) inp.addEventListener('input', () => { inp.classList.remove('error'); clearAlerts(); });
     });
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAlerts();
       let valid = true;
-      const nErr = validateName(nameInput.value);
-      const eErr = validateEmail(emailInput.value);
-      const pErr = validatePasswordStrength(passInput.value);
-      if (nErr) { showFieldError('reg-name', 'reg-name-help', nErr); valid = false; }
-      if (eErr) { showFieldError('reg-email', 'reg-email-help', eErr); valid = false; }
-      if (pErr) { showFieldError('reg-pass', 'reg-pass-help', pErr); valid = false; }
+
+      if (!nameInput.value.trim() || nameInput.value.trim().split(' ').length < 2) { showFieldError('reg-name', 'reg-name-help', 'Informe nome e sobrenome.'); valid = false; }
+      if (!emailInput.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value)) { showFieldError('reg-email', 'reg-email-help', 'E-mail invalido.'); valid = false; }
+      if (!passInput.value || passInput.value.length < 8) { showFieldError('reg-pass', 'reg-pass-help', 'Minimo 8 caracteres.'); valid = false; }
+
       const terms = document.getElementById('reg-terms');
       if (terms && !terms.checked) {
-        showFieldError('reg-pass', 'reg-terms-help', 'Aceite os termos para continuar.'); valid = false;
+        const h = document.getElementById('reg-terms-help');
+        if (h) { h.classList.add('error'); h.innerHTML = '<i class="ti ti-alert-circle"></i> Aceite os termos.'; }
+        valid = false;
       }
       if (!valid) return;
 
       setSubmitLoading('reg-submit', true, 'Criando conta');
-      setTimeout(() => {
-        setSubmitLoading('reg-submit', false);
+
+      try {
+        await NJApi.auth.register({
+          fullName: nameInput.value.trim(),
+          email: emailInput.value.trim(),
+          password: passInput.value,
+          confirmPassword: passInput.value,
+        });
         showAlert('reg-alert', 'success', 'Conta criada. Redirecionando...');
-        setTimeout(() => { window.location.href = '/'; }, 1500);
-      }, 2000);
+        setTimeout(() => NJAuthGuard.redirectToApp(), 800);
+      } catch (err) {
+        setSubmitLoading('reg-submit', false);
+        showAlert('reg-alert', 'error', err.message || 'Erro ao criar conta.');
+      }
     });
   }
 
@@ -194,17 +176,25 @@ const NJAuth = (() => {
 
     if (emailInput) emailInput.addEventListener('input', () => { emailInput.classList.remove('error'); clearAlerts(); });
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAlerts();
-      const eErr = validateEmail(emailInput.value);
-      if (eErr) { showFieldError('forgot-email', 'forgot-email-help', eErr); return; }
+
+      if (!emailInput.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value)) {
+        showFieldError('forgot-email', 'forgot-email-help', 'E-mail invalido.');
+        return;
+      }
 
       setSubmitLoading('forgot-submit', true, 'Enviando');
-      setTimeout(() => {
-        setSubmitLoading('forgot-submit', false);
+
+      try {
+        await NJApi.auth.forgotPassword(emailInput.value.trim());
         showAlert('forgot-alert', 'success', 'E-mail enviado. Verifique sua caixa de entrada.');
-      }, 1500);
+      } catch (err) {
+        showAlert('forgot-alert', 'error', err.message || 'Erro ao enviar e-mail.');
+      } finally {
+        setSubmitLoading('forgot-submit', false);
+      }
     });
   }
 
